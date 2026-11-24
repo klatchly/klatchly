@@ -10,7 +10,7 @@ ARG KLATCHLY_GID=10001
 # Empty unless replaced by --build-context extra=… (its content lands in ext/, over the packages of the tree).
 FROM scratch AS extra
 
-FROM node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS build
+FROM node:24.22.3-trixie-slim@sha256:af02d57b57719b9657a45199a79264a9437940cd55b3c7b3fc99615654f124a0 AS build
 WORKDIR /src
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
