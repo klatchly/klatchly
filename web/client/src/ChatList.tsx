@@ -10,13 +10,15 @@ import { useToast } from './conn';
 import { useSheetDrag } from './sheet';
 import { ChatsSkeleton } from './Skeleton';
 import { api } from './endpoints';
-import { chatPlace, chatsQuery, filteredPlaceholder, keys, lowPriorityQuery, upsertChat, type Pages } from './cache';
+import { chatPlace, chatsQuery, filteredPlaceholder, keys, lowPriorityQuery, removeChat, upsertChat, type Pages } from './cache';
 import { fillDone, shouldFill } from './refreshpolicy';
 import { canArchive, canLowPriority } from './caps';
 import { prefetchChat } from './prefetch';
 import { opensOnPress } from './gestures';
 import { bodyLine, displaySender, relativeTime, snippet, typeLabel } from './format';
-import { t as tr, useT } from './i18n';
+import { localized, t as tr, useLang, useT } from './i18n';
+import { useConnectorUIs } from './registry';
+import { Lazy } from './lazy';
 import { Avatar } from './Avatar';
 import { refreshBadge, unreadChats, unreadTotal } from './badge';
 import { useDrafts } from './drafts';
@@ -120,6 +122,12 @@ export function ChatList({ activeID, view }: { activeID?: string; view: ListView
   const accounts = useNetworkFilter();
   const unread = useUnreadFilter();
   const [quietFor, setQuietFor] = useState<Chat | null>(null);
+  // An entry of a connector's own in the chat menu (ConnectorUI.chatActions): its dialog.
+  const [actionFor, setActionFor] = useState<ConnectorActionAt | null>(null);
+  const connectorUIs = useConnectorUIs();
+  const ActionDialog = actionFor ? connectorUIs.find((k) => k.id === actionFor.connector)?.chatActions?.Dialog : undefined;
+  const qc = useQueryClient();
+  const [, navigate] = useLocation();
   // Chats whose quiet hours just ended are back in the inbox: say so once.
   const inbox = useInfiniteQuery(chatsQuery()).data;
   const inboxChats = useMemo(() => dedupe(inbox?.pages, (c) => chatPlace(c) === 'inbox'), [inbox]);
@@ -154,8 +162,32 @@ export function ChatList({ activeID, view }: { activeID?: string; view: ListView
       ) : (
         <InboxList accounts={accounts} unread={unread} activeID={activeID} onMenu={setMenu} />
       )}
-      {menu && <ChatMenu at={menu} onClose={() => setMenu(null)} onError={flash} onQuiet={setQuietFor} />}
+      {menu && <ChatMenu at={menu} onClose={() => setMenu(null)} onError={flash} onQuiet={setQuietFor} onAction={setActionFor} />}
       {quietFor && <QuietChatDialog chat={quietFor} onClose={() => setQuietFor(null)} onError={flash} />}
+      {actionFor && ActionDialog && (
+        <Lazy failed={null} onError={() => setActionFor(null)}>
+          <ActionDialog
+            action={actionFor.action}
+            chat={{ id: actionFor.chat.id, title: actionFor.chat.title, accountID: actionFor.chat.accountID, network: actionFor.chat.network, type: actionFor.chat.type }}
+            close={() => setActionFor(null)}
+            notify={flash}
+            gone={() => {
+              const id = actionFor.chat.id;
+              removeChat(qc, id);
+              // The menu also opens from the archive and from search results: gone from those too.
+              for (const key of [ARCHIVED_KEY, keys.searchChats]) {
+                qc.setQueriesData<Pages<Chat>>({ queryKey: key }, (old) =>
+                  old?.pages ? { ...old, pages: old.pages.map((p) => ({ ...p, items: p.items.filter((c) => c.id !== id) })) } : old,
+                );
+              }
+              // The archive search index lags a few seconds behind (as after archiving): refetch later, not now.
+              window.setTimeout(() => void qc.invalidateQueries({ queryKey: ARCHIVED_KEY }), 5000);
+              qc.removeQueries({ queryKey: keys.chat(id) });
+              if (activeID === id) navigate('/', { replace: true });
+            }}
+          />
+        </Lazy>
+      )}
       {toast && <div className="toast" role="status" data-testid="toast">{toast}</div>}
     </div>
   );
@@ -657,9 +689,15 @@ async function chatAction(qc: QueryClient, chat: Chat, action: 'pin' | 'mute' | 
   void qc.invalidateQueries({ queryKey: ARCHIVED_KEY });
 }
 
-function ChatMenu({ at, onClose, onError, onQuiet }: { at: MenuAt; onClose: () => void; onError: (t: string) => void; onQuiet: (chat: Chat) => void }) {
+/** A connector's entry chosen in a chat's menu (ConnectorUI.chatActions): which, for which chat. */
+type ConnectorActionAt = { connector: string; action: string; chat: Chat };
+const ACTION_ID = /^[a-z][a-z0-9-]{0,31}$/;
+
+function ChatMenu({ at, onClose, onError, onQuiet, onAction }: { at: MenuAt; onClose: () => void; onError: (t: string) => void; onQuiet: (chat: Chat) => void; onAction: (a: ConnectorActionAt) => void }) {
   const qc = useQueryClient();
   const t = useT();
+  const lang = useLang();
+  const connectorUIs = useConnectorUIs();
   const { chat } = at;
   const reading = useReading().data;
   const sheet = 'sheet' in at;
@@ -705,6 +743,14 @@ function ChatMenu({ at, onClose, onError, onQuiet }: { at: MenuAt; onClose: () =
   }
   // Quiet hours: its own, its network's, or never (a dialog).
   items.push({ id: 'quiet', label: t.quiet.menu, run: async () => onQuiet(chat) });
+  // The connectors' own entries for this chat (leaving a Matrix room…), each a dialog of theirs.
+  for (const k of connectorUIs) {
+    if (!k.chatActions || !k.owns?.(chat.id)) continue;
+    for (const a of k.chatActions.list(chat)) {
+      if (!ACTION_ID.test(a.id) || items.some((x) => x.id === a.id)) continue;
+      items.push({ id: a.id, label: localized(a.label, lang), run: async () => onAction({ connector: k.id, action: a.id, chat }) });
+    }
+  }
 
   return (
     <div className={`menu-backdrop ${sheet ? 'sheet-backdrop' : ''}`} onClick={onClose} onContextMenu={(e) => e.preventDefault()}>

@@ -74,6 +74,82 @@ export interface ConnectorUI extends ConnectorTraits {
   type: 'connector';
   /** Its mark, `size` px square; `label` is the network's name as shown (the image's accessible name). */
   icon: ComponentType<{ size?: number; label?: string }>;
+  /**
+   * Its own entry in New chat for some of its accounts (e.g. joining a room by its address), drawn under the
+   * account's search while that account is chosen: `available` says for which (on the launch path). (2.1.0)
+   */
+  newChat?: {
+    available: (account: { accountID: string; network?: string }) => boolean;
+    Entry: Chunk<ComponentType<ConnectorNewChatProps>>;
+  };
+  /**
+   * Links in messages it opens in the app instead of a new tab (e.g. a room's link): `handles` tells them apart (on
+   * the launch path, an href as the browser resolved it); a plain click on one shows `Dialog` (a modal of its own).
+   * Middle and modified clicks keep the link's own behaviour. (2.1.0)
+   */
+  links?: {
+    handles: (href: string) => boolean;
+    Dialog: Chunk<ComponentType<ConnectorLinkProps>>;
+  };
+  /**
+   * Entries of its own in a chat's menu (the chat list's), after the core's: `list` says which for a chat (on the
+   * launch path; none for most), and choosing one shows `Dialog` with its id (a modal of its own: a confirmation
+   * before leaving a room…). (2.1.0)
+   */
+  chatActions?: {
+    list: (chat: ConnectorChat) => readonly ConnectorChatAction[];
+    Dialog: Chunk<ComponentType<ConnectorChatActionProps>>;
+  };
+}
+
+/** A chat as a connector's entries see it (ConnectorUI.chatActions). (2.1.0) */
+export interface ConnectorChat {
+  id: string;
+  title?: string;
+  accountID?: string;
+  network?: string;
+  type?: string;
+}
+
+/** What New chat hands a connector's entry (ConnectorUI.newChat), for the account chosen. (2.1.0) */
+export interface ConnectorNewChatProps {
+  accountID: string;
+  /** The account's network, as shown. */
+  network: string;
+  /** Closes New chat and opens this chat. */
+  open: (chatID: string) => void;
+}
+
+/** What the conversation hands a connector's link dialog (ConnectorUI.links). (2.1.0) */
+export interface ConnectorLinkProps {
+  /** The link, as the browser resolved it. */
+  href: string;
+  /** Closes the dialog and opens this chat. */
+  open: (chatID: string) => void;
+  close: () => void;
+}
+
+/** An entry of a chat's menu from a connector (ConnectorUI.chatActions). (2.1.0) */
+export interface ConnectorChatAction {
+  /** Lower-case id (`[a-z][a-z0-9-]{0,31}`), unique in the connector; its testid is chat-menu-<id>. */
+  id: string;
+  /** By language code (English the fallback). */
+  label: Readonly<Record<string, string>>;
+}
+
+/** What the chat list hands a connector's dialog for an entry of a chat's menu (ConnectorUI.chatActions). (2.1.0) */
+export interface ConnectorChatActionProps {
+  /** The entry chosen (ConnectorChatAction.id). */
+  action: string;
+  chat: ConnectorChat;
+  close: () => void;
+  /**
+   * The chat is gone for the user (a room left): the core takes it out of its lists and leaves its conversation if
+   * it shows. Then close.
+   */
+  gone: () => void;
+  /** Shows a short line in the list's toast. */
+  notify: (message: string) => void;
 }
 
 /** What the composer hands an augmentation: the draft, and what may be done with it. */

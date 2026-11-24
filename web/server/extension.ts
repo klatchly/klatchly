@@ -22,10 +22,11 @@ export type ModuleType = 'connector' | 'space' | 'augmentation' | 'provider';
  * (ConnectorShape.longReactionKey, client ConnectorTraits.mediaQuery / displaysMarkdown; `owns` absent is a legacy
  * catch-all for chat and account routing only). 1.26: upstreamSignal (a connector's reads stop with the browser
  * requests waiting on them; identical reads are shared). 2.0: PackageInfo.beep renamed PackageInfo.klatchly (and
- * PackageDetails), with the app's rename to Klatchly. Additions bump the minor, a removal or a changed
+ * PackageDetails), with the app's rename to Klatchly. 2.1: a connector's own entries in the core's UI (client
+ * ConnectorUI.newChat / links / chatActions and their props types). Additions bump the minor, a removal or a changed
  * signature the major; test/contract.test.ts holds the line (its snapshot, test/contract.json).
  */
-export const EXTENSION_API = '2.0.0';
+export const EXTENSION_API = '2.1.0';
 
 /** What an augmentation sees: only what the user hands it ('on-demand'), or every upstream event ('events'). */
 export type AugmentationScope = 'on-demand' | 'events';

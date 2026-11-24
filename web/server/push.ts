@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 import { config } from './config.js';
 import { clientIp, store, type Env } from './context.js';
 import { RateLimiter } from './ratelimit.js';

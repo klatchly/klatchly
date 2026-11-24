@@ -1,0 +1,22 @@
+#!/bin/sh
+# Commit messages follow Conventional Commits 1.0.0, in English (CONTRIBUTING.md, "Commit messages and pull requests").
+# Enable once per clone: git config core.hooksPath .githooks
+subject=$(grep -v '^#' "$1" | head -n 1)
+case "$subject" in
+  Merge\ *|Revert\ \"*|fixup!\ *|squash!\ *|amend!\ *) exit 0 ;;
+esac
+types='feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert'
+if ! printf '%s' "$subject" | grep -Eq "^($types)(\([a-z0-9][a-z0-9._/-]*\))?!?: [^ ].*$"; then
+  echo "commit-msg: the subject must be '<type>(<optional scope>): <description>' (Conventional Commits)." >&2
+  echo "  types: $types   e.g. 'feat(beeper): join a Matrix room'" >&2
+  echo "  got:   $subject" >&2
+  exit 1
+fi
+if [ "$(printf '%s' "$subject" | wc -m)" -gt 72 ]; then
+  echo "commit-msg: keep the subject at 72 characters or fewer." >&2
+  exit 1
+fi
+if printf '%s' "$subject" | grep -q '[àâçéèêëîïôûùüÿœÀÂÇÉÈÊËÎÏÔÛÙÜŸŒ]'; then
+  echo "commit-msg: write commit messages in English." >&2
+  exit 1
+fi

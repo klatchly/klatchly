@@ -9,12 +9,12 @@ a real model: each backend is a fake, invented and deterministic, running in the
 From `web/`:
 
 ```sh
-docker run --rm --network none -u $(id -u):$(id -g) -v "$PWD":/src -w /src -e HOME=/tmp node:24.22.1-trixie-slim \
+docker run --rm --network none -u $(id -u):$(id -g) -v "$PWD":/src -w /src -e HOME=/tmp node:24.22.3-trixie-slim \
   sh -c 'npm run typecheck && npm test && npm run build'
 ```
 
 (`npm ci` first, once, with network: `docker run --rm -u $(id -u):$(id -g) -v "$PWD":/src -w /src -e HOME=/tmp
-node:24.22.1-trixie-slim npm ci`.)
+node:24.22.3-trixie-slim npm ci`.)
 
 `npm test` compiles the tests into `build-test/`, then runs `node --test` with one process per file, in parallel
 (each process takes a free port for its fake beeper-server, `test/env.ts`). It covers: the core's routes on a fake
@@ -36,7 +36,7 @@ package present in the tree but not listed, those that do not load the build (`e
 
 ```sh
 docker run --rm --network none -u $(id -u):$(id -g) -v "$PWD":/src -w /src -e HOME=/tmp \
-  -e KLATCHLY_PACKAGES=beeper,accounts,llm,writing,example node:24.22.1-trixie-slim \
+  -e KLATCHLY_PACKAGES=beeper,accounts,llm,writing,example node:24.22.3-trixie-slim \
   sh -c 'npm run typecheck && npm test && npm run build'
 ```
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type ReactNode, type TouchEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent, type ReactNode, type TouchEvent } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useLocation } from 'wouter';
@@ -16,7 +16,7 @@ import { ConvContext, type Conv, type MenuMode } from './convctx';
 import { planToggle, rememberReaction } from './reactions';
 import { displaySender } from './format';
 import { isRawUserID } from '../../server/names';
-import { useAugmentations } from './registry';
+import { useAugmentations, useConnectorUIs } from './registry';
 import type { MenuState } from './MessageMenu';
 import { Avatar } from './Avatar';
 import { NetworkBadge, networkName } from './networks';
@@ -234,6 +234,19 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
   const augmentations = useAugmentations();
   const [fill, setFill] = useState<{ key: number; text: string }>();
   const fillField = useCallback((text: string) => setFill({ key: Date.now(), text }), []);
+  // Links a connector opens in the app (ConnectorUI.links: a Matrix room's matrix.to link): a plain click shows its
+  // dialog instead of a new tab; middle and modified clicks keep the link's own behaviour.
+  const connectorUIs = useConnectorUIs();
+  const [appLink, setAppLink] = useState<{ connector: string; href: string } | null>(null);
+  const onMessagesClick = (e: MouseEvent) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = (e.target as Element).closest('a[href]') as HTMLAnchorElement | null;
+    const k = a ? connectorUIs.find((x) => x.links?.handles(a.href)) : undefined;
+    if (!a || !k) return;
+    e.preventDefault();
+    setAppLink({ connector: k.id, href: a.href });
+  };
+  const LinkDialog = appLink ? connectorUIs.find((k) => k.id === appLink.connector)?.links?.Dialog : undefined;
 
   // On iOS, an older page waits for the scroll to stop before it shows: Virtuoso, prepending rows while it holds a
   // correction (IOS_WEBKIT), drops that correction and the messages jump by it. `heldPages`: the pages shown while
@@ -1305,6 +1318,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
         onKeyDown={markInput}
         onPointerDown={markInput}
         onTouchStart={onTouchStart}
+        onClick={onMessagesClick}
       >
         {msgQ.isPending || (needMore && rows.length === 0) || needUnread ? (
           <MessagesSkeleton />
@@ -1478,6 +1492,18 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
           onCancel={() => setConfirm(null)}
           onConfirm={(forEveryone) => doDelete(confirm, forEveryone)}
         />
+      )}
+      {appLink && LinkDialog && (
+        <Lazy failed={null} onError={() => setAppLink(null)}>
+          <LinkDialog
+            href={appLink.href}
+            close={() => setAppLink(null)}
+            open={(id) => {
+              setAppLink(null);
+              navigate(`/chat/${encodeURIComponent(id)}`);
+            }}
+          />
+        </Lazy>
       )}
       {toast && <div className="toast" role="status" data-testid="toast">{toast}</div>}
       <SaveDock scope="conv" />

@@ -1,6 +1,6 @@
 // The fake Desktop API (beeper-server) for the offline instance (server.mjs): made-up accounts, chats and histories
 // kept in memory, what the beeper package calls on them (chats, messages, search, media, upload, send, edit,
-// delete, reactions, read, archive, flags, contacts, new chats), and its WebSocket (/v1/ws) with the events those
+// delete, reactions, read, archive, flags, contacts, new chats, joining and leaving a Matrix room), and its WebSocket (/v1/ws) with the events those
 // writes cause. Every name, number and picture is invented. Test hooks, on the same port, for run.mjs and the scripts:
 // POST /__reset (every fake back to its start), POST /__inject (an incoming message in the test chat: the text is
 // the body), POST /__inject/group (the same in the WhatsApp group), POST /__inject/react ({ mid, key, remove }: our reaction "from another device"), GET /__calls (the
@@ -402,6 +402,52 @@ function append(c, o) {
   return m;
 }
 
+// ── Matrix rooms (the beeper package's join and leave: undocumented endpoints beeper-server serves) ──
+
+// The rooms the fake homeserver knows, by alias; '#private:…' is invite-only. A joined room shows in /v1/chats a
+// moment after the join (as on beeper-server 4.3.284), as a group of the 'matrix' account.
+const ROOMS = { '#klatchly-test:example.org': { id: '!joinable:example.org', title: 'Klatchly test room' } };
+let roomGen = 0;
+
+function joinRoom(target) {
+  if (target === '#private:example.org') return [403, { errcode: 'M_FORBIDDEN', error: 'You are not invited to this room.' }];
+  const room = ROOMS[target] ?? Object.values(ROOMS).find((r) => r.id === target);
+  if (!room) return [404, { errcode: 'M_NOT_FOUND', error: 'Room alias not found' }];
+  if (!state.chats.has(room.id)) {
+    const gen = roomGen;
+    setTimeout(() => {
+      if (gen !== roomGen || state.chats.has(room.id)) return;
+      const c = {
+        id: room.id,
+        localChatID: String(state.chats.size + 1),
+        accountID: 'matrix',
+        network: 'Beeper (Matrix)',
+        title: room.title,
+        type: 'group',
+        participants: { items: [P.me], hasMore: true, total: 120 },
+        lastActivity: new Date().toISOString(),
+        unreadCount: 0,
+        isArchived: false,
+        isMuted: false,
+        isPinned: false,
+        isLowPriority: false,
+      };
+      state.chats.set(c.id, c);
+      state.messages.set(c.id, []);
+      chatUpserted(c);
+    }, 700);
+  }
+  return [200, { room_id: room.id }];
+}
+
+function leaveRoom(id) {
+  if (!state.chats.has(id)) return [404, { errcode: 'M_NOT_FOUND', error: 'Unknown room' }];
+  state.chats.delete(id);
+  state.messages.delete(id);
+  emit({ type: 'chat.deleted', chatID: id, ids: [id] });
+  return [200, {}];
+}
+
 // ── Routes ──
 
 async function route(req, url, body) {
@@ -473,6 +519,8 @@ async function route(req, url, body) {
     state.uploads.set(id, up);
     return [200, { uploadID: id, srcURL: `file:///data/uploads/${id}`, fileName: up.fileName, mimeType: mime, fileSize: up.buf.length, ...(up.size ?? {}) }];
   }
+  if ((m = /^\/_matrix\/client\/v3\/join\/([^/]+)$/.exec(p)) && method === 'POST') return joinRoom(decodeURIComponent(m[1]));
+  if ((m = /^\/_matrix\/client\/v3\/rooms\/([^/]+)\/leave$/.exec(p)) && method === 'POST') return leaveRoom(decodeURIComponent(m[1]));
   if (!(m = /^\/v1\/chats\/([^/]+)(\/.*)?$/.exec(p))) return [404, { message: 'not found' }];
   const c = state.chats.get(decodeURIComponent(m[1]));
   if (!c) return [404, { message: 'chat not found' }];
@@ -562,6 +610,7 @@ let resetAll = async () => {};
 export function reset() {
   resetCalls();
   for (const id of media.keys()) if (!BASE_MEDIA.has(id)) media.delete(id);
+  roomGen++;
   state = build();
   // The app's own copy of every chat (badge, push) follows the reset.
   for (const c of state.chats.values()) chatUpserted(c);

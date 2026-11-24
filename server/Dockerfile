@@ -8,7 +8,7 @@ ARG KLATCHLY_UID=10001
 ARG KLATCHLY_GID=10001
 
 # Debian 13 (bookworm is LTS-only since 2026-07). glibc >= 2.34 and libstdc++ (GLIBCXX_3.4.29) needed.
-FROM debian:trixie-20261027-slim@sha256:26c37952d274874448dd4f0943fc79bfb7c3d9cc8c8004ac4dc987489ca931be AS fetch
+FROM debian:trixie-20261104-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2 AS fetch
 ARG BEEPER_VERSION
 ADD --checksum=sha256:598dfb44c18d8e26bc60d6b9fd0bce103d6f00334d13d4ce968a9a0f90c7425c \
     https://beeper-desktop.download.beeper.com/builds/beeper-server-${BEEPER_VERSION}-linux-x64.tar.gz /tmp/beeper-server.tar.gz
@@ -16,7 +16,7 @@ RUN mkdir -p /out \
  && tar -xzf /tmp/beeper-server.tar.gz -C /tmp \
  && mv /tmp/beeper-server-${BEEPER_VERSION}-linux-x64/beeper-server /out/beeper-server
 
-FROM debian:trixie-20261027-slim@sha256:26c37952d274874448dd4f0943fc79bfb7c3d9cc8c8004ac4dc987489ca931be
+FROM debian:trixie-20261104-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2
 ARG KLATCHLY_UID
 ARG KLATCHLY_GID
 RUN apt-get update \

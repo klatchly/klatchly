@@ -542,12 +542,16 @@ button.reaction { font: inherit; color: inherit; cursor: pointer; }
 .text-btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .text-btn:disabled { opacity: 0.5; cursor: default; }
 .text-btn.danger { color: var(--danger); border-color: var(--danger); }
+/* A link dressed as a button ("Open in browser"): no underline, its text centred like a button's. */
+a.text-btn { text-decoration: none; display: inline-flex; align-items: center; }
 dialog.confirm {
   border: 1px solid var(--line); border-radius: 14px; background: var(--pane); color: var(--text);
   padding: 18px 18px 14px; max-width: min(380px, calc(100vw - 32px)); box-shadow: 0 10px 40px rgb(0 0 0 / 0.25);
 }
 dialog.confirm::backdrop { background: rgb(0 0 0 / 0.4); }
-dialog.confirm p { margin: 0 0 16px; font-size: 16px; }
+dialog.confirm p { margin: 0 0 16px; font-size: 16px; overflow-wrap: anywhere; }
+/* A secondary line under a dialog's text (a long room id…): smaller, muted, wrapped anywhere. */
+dialog.confirm p.confirm-sub { margin-top: -10px; font-size: 13px; color: var(--muted); }
 .confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 
 /* Settings: its menu in the list column, a page in the chat pane (Shell.tsx SettingsPage); their headers are here,
@@ -946,6 +950,13 @@ html.kb-open .msg-menu.newchat.sheet { height: calc(100% - 8px); }
   font: inherit; font-size: 16px; /* under 16px iOS zooms in on focus */ background: var(--bg); color: var(--text);
 }
 .newchat-search input:focus, .newchat-title:focus { outline: none; border-color: var(--accent); }
+/* A field and its button on one row, inside a group (not sticky like the search bar above the list). */
+.newchat-join-row { display: flex; gap: 6px; align-items: center; }
+.newchat-join-row input {
+  flex: 1; min-width: 0; width: 100%; border: 1px solid var(--line); border-radius: 18px; padding: 7px 14px;
+  font: inherit; font-size: 16px; /* under 16px iOS zooms in on focus */ background: var(--bg); color: var(--text);
+}
+.newchat-join-row input:focus { outline: none; border-color: var(--accent); }
 .newchat-hintrow { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 4px; }
 .newchat-mode { flex-shrink: 0; white-space: nowrap; font-size: 13px; padding: 4px 10px; }
 .newchat-mode.on { border-color: var(--accent); color: var(--accent); }

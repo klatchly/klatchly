@@ -57,6 +57,17 @@ export function useLowPriorityShown(): boolean {
   return useMemo(() => lowPriorityShown(connectorsOn(data)), [data]);
 }
 
+const connectorUIs = packages.flatMap((p) => p.modules.flatMap((m) => (m.type === 'connector' ? [{ pkg: p.id, ui: m }] : [])));
+
+/**
+ * The connectors' UI sides the server has on, in the order of the build (none until it has said): their entries in
+ * New chat, their links and their chat-menu entries (ConnectorUI.newChat, links, chatActions; 2.1.0).
+ */
+export function useConnectorUIs(): readonly ConnectorUI[] {
+  const data = useExtensions();
+  return useMemo(() => (data ? connectorUIs.filter((x) => moduleOn(data, x.pkg, 'connector', x.ui.id)).map((x) => x.ui) : []), [data]);
+}
+
 /** The spaces whose package is on (none until the server has said). */
 export function useActiveSpaces(): readonly SpaceModule[] {
   const data = useExtensions();

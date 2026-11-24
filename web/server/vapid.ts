@@ -1,7 +1,7 @@
 import { closeSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 import { config } from './config.js';
 import { log } from './log.js';
 

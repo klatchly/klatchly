@@ -336,7 +336,9 @@ new directory of the `beeper-cache` volume; the previous version's directory (ab
 reclaim it, with beeper-server stopped: `docker compose rm -f beeper-server && docker volume rm klatchly_beeper-cache`,
 then `docker compose up -d beeper-server` (it unpacks again; nothing else is lost). After the upgrade, run the checks of § 7; the new
 version's API specification is at `GET /v1/spec` (`bs "$BS/v1/spec"`): compare it with the previous one before
-relying on a changed route.
+relying on a changed route. Klatchly's Matrix rooms (joining, leaving: [self-hosting.md](self-hosting.md#matrix-rooms))
+use `/_matrix/client/v3/join/{roomIdOrAlias}` and `/_matrix/client/v3/rooms/{roomId}/leave`, which Beeper does not
+document: check that the new specification still lists them.
 
 ## 10. Troubleshooting
 

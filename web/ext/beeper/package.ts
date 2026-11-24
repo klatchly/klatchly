@@ -6,10 +6,11 @@ import type { PackageInfo } from '#core/extension.js';
 
 export const beeperPackage = {
   id: 'beeper',
-  version: '1.1.0',
+  version: '1.2.0',
   // 1.25: no default connector (owns, ownsAccount and longReactionKey declared; the client half's traits). 1.26: its
-  // reads stop with the browser requests waiting on them (upstreamSignal).
-  klatchly: '^2.0',
+  // reads stop with the browser requests waiting on them (upstreamSignal). 2.1: its Matrix rooms in New chat, links and
+  // the chat menu (ConnectorUI.newChat, links, chatActions).
+  klatchly: '^2.1',
   // KLATCHLY_UPSTREAM (default http://beeper-server:23373) and KLATCHLY_TOKEN_FILE (default the beeper_token docker
   // secret) have defaults; the token file itself is checked by the module.
   config: [],

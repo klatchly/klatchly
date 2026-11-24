@@ -167,7 +167,9 @@ The client slots, in short (details in [extension-api.md](extension-api.md)):
   hover row, `Below` under the text, `Menu` entries of the message menu), `audioMenu` (since 1.23: its `Menu` also in
   the menu of a voice note or another audio attachment, `MessageMenuSlotProps.audio` its index);
 - a **connector's UI side** (`ConnectorUI`): its networks' names and mark, which chats are its own, and traits of
-  its chats and media;
+  its chats and media; since 2.1, entries of its own in the core's UI: `newChat` (in New chat, for some of its
+  accounts), `links` (links in messages it opens in the app, with a dialog) and `chatActions` (entries in the menu of
+  its chats, each with a dialog);
 - **frames**: `ClientPackage.events`, by frame type, what to refresh when the server half calls
   `ctx.toBrowsers({ type: '<module id>' | '<module id>.<x>', … })`. A frame is a content-free ping ("this changed,
   refetch"); any other type is dropped and logged.
@@ -447,7 +449,7 @@ From `web/` ([tests.md](tests.md), tier 1), with your package in the list:
 
 ```sh
 docker run --rm --network none -u $(id -u):$(id -g) -v "$PWD":/src -w /src -e HOME=/tmp \
-  -e KLATCHLY_PACKAGES=beeper,accounts,llm,writing,example node:24.22.1-trixie-slim \
+  -e KLATCHLY_PACKAGES=beeper,accounts,llm,writing,example node:24.22.3-trixie-slim \
   sh -c 'npm run typecheck && npm test && npm run build'
 ```
 
@@ -509,7 +511,7 @@ compiled with the core.
 
 Two kinds of version:
 
-- **`EXTENSION_API`** (`server/extension.ts`, today 2.0.0) versions what packages build on: `server/sdk.ts`,
+- **`EXTENSION_API`** (`server/extension.ts`, today 2.1.0) versions what packages build on: `server/sdk.ts`,
   `client/src/sdk.ts` (since 1.15), and the module contracts (`server/extension.ts`, `server/registry.ts`,
   `server/connector.ts`, `client/src/extension.ts`, and every declaration they refer to).
 - **A package's `version`** (`x.y.z`) versions what other packages use of it: its `api.ts`.
@@ -731,7 +733,7 @@ It does not load the build, so it runs with `npm test` whether or not `hello` is
 
 ```sh
 docker run --rm --network none -u $(id -u):$(id -g) -v "$PWD":/src -w /src -e HOME=/tmp \
-  -e KLATCHLY_PACKAGES=beeper,llm,writing,hello node:24.22.1-trixie-slim \
+  -e KLATCHLY_PACKAGES=beeper,llm,writing,hello node:24.22.3-trixie-slim \
   sh -c 'npm run typecheck && npm test && npm run build'
 ```
 

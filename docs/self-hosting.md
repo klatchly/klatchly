@@ -399,6 +399,29 @@ be paused and resumed there (a confirmation names the task and what pausing stop
 stays in Hermes (Klatchly's allowlist refuses those calls). Klatchly keeps its own unread
 counts and tells Hermes its read state (`PATCH /api/sessions/{id}` with `{"unread": …}`, best effort).
 
+## Matrix rooms
+
+The Beeper account is a Matrix account on beeper.com: its Matrix rooms are chats like any other. Since 0.26.2
+Klatchly can also **join** a room and **leave** one (beeper package 1.2.0):
+
+- New chat, with the Beeper account chosen: "Join a Matrix room" takes `#room:server`, `!id:server` or a
+  `https://matrix.to/#/…` link (its `via` servers are used);
+- a plain click on a room's `matrix.to` link in a message offers to join it (a middle or modified click opens the link
+  as before). Only a link to a room id (`!…`) of a room you are already in opens it directly; a link to an alias
+  (`#…`) always asks first, and joining a room you are already in only opens it;
+- "Leave room" in the chat menu of a group room of the Beeper account (not a direct chat), after a confirmation.
+
+You join as your Beeper account, so the room's members see it. A room you join starts **muted** (public rooms are
+noisy); unmute it from the chat menu.
+
+**Caveat: undocumented endpoint.** Joining and leaving call the Matrix client-server endpoints that beeper-server
+serves on its own API, with the same token (`POST /_matrix/client/v3/join/{roomIdOrAlias}`, `POST
+/_matrix/client/v3/rooms/{roomId}/leave`). beeper-server lists them in the specification it serves (`GET /v1/spec`,
+tag "Matrix"), but Beeper's public Desktop API reference and SDK do not document them: a beeper-server update may change
+or remove them. Joining was checked on beeper-server 4.3.284; leaving was not. When beeper-server no longer answers
+them, Klatchly says so: join or leave from a Beeper app instead (a room joined there shows in Klatchly). After a
+beeper-server upgrade, check that these paths are still in its `/v1/spec` ([beeper-server.md](beeper-server.md), § 9).
+
 ## Reverse proxy
 
 Klatchly listens on `127.0.0.1:KLATCHLY_PORT` in plain HTTP. Something in front must terminate TLS for `KLATCHLY_ORIGIN`.
@@ -613,6 +636,7 @@ stay unreadable.
 | Every device shows the same address, rate limits hit everyone | The proxy is not in `KLATCHLY_TRUSTED_PROXIES` (Caddy on the host: the Compose gateway), or the client-IP header is not the one the proxy sets. |
 | Klatchly does not start after setting OIDC variables | A half-done setup (a client id without issuer, an unreadable secret file, a non-`https://` issuer) stops the start on purpose: the log says which. |
 | "Continue with …" lets nobody in | No account pinned: [Sign-in with an OIDC provider](#sign-in-with-an-oidc-provider), step 3. |
+| "This Beeper server does not let Klatchly join rooms" | beeper-server no longer serves `POST /_matrix/client/v3/join/…` (an undocumented endpoint): [Matrix rooms](#matrix-rooms). Join from a Beeper app; the room then shows in Klatchly. |
 | A package is off in Settings → Extensions | Its configuration is incomplete (e.g. `KLATCHLY_LLM_URL` without model or key): the reason is shown there and in the log. |
 | Permission denied on a volume or a secret file | Volumes and secret files belong to `KLATCHLY_UID`; after changing it, rebuild both images and give the files to the new uid. |
 

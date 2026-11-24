@@ -10,7 +10,7 @@ ARG KLATCHLY_GID=10001
 # Empty unless replaced by --build-context extra=… (its content lands in ext/, over the packages of the tree).
 FROM scratch AS extra
 
-FROM node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS build
+FROM node:24.22.3-trixie-slim@sha256:af02d57b57719b9657a45199a79264a9437940cd55b3c7b3fc99615654f124a0 AS build
 WORKDIR /src
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -36,7 +36,7 @@ RUN npm run typecheck && npm run build \
  && mv dist/licenses/THIRD_PARTY_LICENSES.txt dist/licenses/sbom.cdx.json NOTICE /out/doc/ \
  && rm -rf dist/licenses
 
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:39b0407357c9fadf1a9708d22088f02de21f0e1e8a688474eea2d8701e7d5693
 ARG KLATCHLY_UID
 ARG KLATCHLY_GID
 WORKDIR /app

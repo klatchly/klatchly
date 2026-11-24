@@ -8,6 +8,7 @@ import { mediaMessages, readAllLowPriority, unreadChats } from './inbox.js';
 import { beeperReceipts, flushLocalRead } from './localread.js';
 import { attachmentSource, beeperReactionKey, mxcMedia } from './mxc.js';
 import { accountsPending, flushAccounts, knownAccount } from './accounts.js';
+import { matrixRoutes, stopMatrix } from './matrix.js';
 import { newChat } from './newchat.js';
 import { streamUpload } from './upload.js';
 import { tokenProblem, upstreamFailure } from './upstream.js';
@@ -42,6 +43,8 @@ export default definePackage({
       attachmentSource,
       newChat,
       openLive,
+      // Joining and leaving Matrix rooms with the Beeper account (matrix.ts: /api/beeper/matrix/…).
+      routes: matrixRoutes,
       start(ctx) {
         events = new BeeperEvents(ctx.feed!);
         events.start();
@@ -52,6 +55,7 @@ export default definePackage({
         flushDelivered();
         flushLocalRead();
         flushAccounts();
+        stopMatrix();
       },
     }),
   ],

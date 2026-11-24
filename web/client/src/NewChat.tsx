@@ -10,6 +10,8 @@ import { fromListState, phoneLayout } from './nav';
 import { hue, initials } from './format';
 import { useT } from './i18n';
 import { classifyIdentifier, type Identifier } from '../../server/identifier';
+import { useConnectorUIs } from './registry';
+import { Lazy } from './lazy';
 import type { Account, Chat, Contact, NewChatCaps } from './types';
 import type { Messages } from '../../server/locales/en';
 
@@ -159,6 +161,9 @@ function AccountStep({ account, focusSearch, onOpened }: { account: Account; foc
   const qc = useQueryClient();
   const [, navigate] = useLocation();
   const network = networkName(account.network);
+  // The connectors' own entries for this account (ConnectorUI.newChat: joining a room by its address…).
+  const connectorUIs = useConnectorUIs();
+  const entries = connectorUIs.filter((k) => k.newChat?.available({ accountID: account.accountID, network: account.network }));
   const caps = useQuery({ queryKey: ['newchat-caps', account.accountID], queryFn: () => api.newChatCaps(account.accountID), staleTime: 10 * 60_000, retry: 1 });
   const c = caps.data;
   const [input, setInput] = useState('');
@@ -318,6 +323,15 @@ function AccountStep({ account, focusSearch, onOpened }: { account: Account; foc
           </button>
         )}
       </div>
+
+      {entries.map((k) => {
+        const Entry = k.newChat!.Entry;
+        return (
+          <Lazy key={k.id} failed={null}>
+            <Entry accountID={account.accountID} network={network} open={(id) => opened(id)} />
+          </Lazy>
+        );
+      })}
 
       {group && g && (
         <div className="newchat-group" data-testid="newchat-group">
