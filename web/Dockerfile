@@ -36,7 +36,7 @@ RUN npm run typecheck && npm run build \
  && mv dist/licenses/THIRD_PARTY_LICENSES.txt dist/licenses/sbom.cdx.json NOTICE /out/doc/ \
  && rm -rf dist/licenses
 
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:39b0407357c9fadf1a9708d22088f02de21f0e1e8a688474eea2d8701e7d5693
 ARG KLATCHLY_UID
 ARG KLATCHLY_GID
 WORKDIR /app
