@@ -1,0 +1,62 @@
+{
+  "name": "klatchly",
+  "version": "0.26.1",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "imports": {
+    "#core/*": {
+      "types": "./server/*",
+      "klatchly-test": "./build-test/server/*",
+      "default": "./dist/*"
+    },
+    "#ext/*": {
+      "types": "./ext/*",
+      "klatchly-test": "./build-test/ext/*",
+      "default": "./dist/ext/*"
+    }
+  },
+  "scripts": {
+    "compose": "node scripts/compose-packages.mjs",
+    "typecheck": "npm run compose && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
+    "build:server": "node scripts/build-server.mjs",
+    "build:web": "vite build",
+    "splash": "node scripts/splash.mjs",
+    "licenses": "node scripts/licenses.mjs",
+    "build": "npm run compose && npm run build:server && npm run build:web && npm run licenses",
+    "contracts": "KLATCHLY_UPDATE_CONTRACTS=1 npm test",
+    "test": "npm run compose && node -e \"require('fs').rmSync('build-test', { recursive: true, force: true })\" && tsc -p tsconfig.test.json && node scripts/run-tests.mjs"
+  },
+  "dependencies": {
+    "@beeper/desktop-api": "^6.0.0",
+    "@hono/node-server": "^2.1.7",
+    "@simplewebauthn/server": "^14.1.0",
+    "hono": "^4.13.18",
+    "openid-client": "^6.8.9",
+    "sharp": "^0.35.5",
+    "web-push": "^3.6.7",
+    "ws": "^8.22.2"
+  },
+  "devDependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
+    "@tanstack/react-query": "^5.105.0",
+    "@types/node": "^24",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/web-push": "^3.6.4",
+    "@types/ws": "^8.18.2",
+    "@vite-pwa/assets-generator": "^2.0.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "pdfjs-dist": "^6.4.299",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-virtuoso": "^4.18.19",
+    "simple-icons": "^16.36.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "wouter": "^3.13.0"
+  }
+}

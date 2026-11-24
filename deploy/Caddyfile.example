@@ -1,0 +1,42 @@
+# Klatchly behind Caddy on the host (example). Replace klatchly.example.com with your domain (= KLATCHLY_ORIGIN / KLATCHLY_RP_ID in
+# .env) and 8080 with KLATCHLY_PORT. Caddy obtains the certificate itself (automatic HTTPS).
+# - Auth is the app's (passkeys): an unauthenticated request gets 200 (the SPA) or a 302 to /, never 401/403; a
+#   refused WebSocket gets 400. The device API under /api/bearer/ (the share package's iOS Shortcut, with a token)
+#   answers 400 bad_token, 404, 413 or 429, never 401/403 either.
+# - flush_interval -1: the WebSocket (/api/ws) and streamed media (Range) must not be buffered.
+# - The log masks the url parameter of /api/media (a media identifier), and the title, text and url of a link shared
+#   into /share (Android's share sheet opens /share?title=&text=&url=: what the user shares stays out of the log).
+# - Uploads: the app caps /api/upload at 100 MB; Caddy cuts at 101 MB. If you put a web application firewall in
+#   front (for example a CrowdSec appsec `import`), exclude /api/upload from it: such firewalls often reject bodies
+#   over a few MB. Do not buffer /api/ws or /api/media either.
+# - Set trusted proxies in Klatchly: Caddy reaches the container from the compose network's gateway
+#   (KLATCHLY_TRUSTED_PROXIES in .env).
+klatchly.example.com {
+	log {
+		output file /var/log/caddy/klatchly.access.log
+		format filter {
+			fields {
+				request>uri query {
+					replace url REDACTED
+					replace text REDACTED
+					replace title REDACTED
+				}
+			}
+		}
+	}
+	header -Server
+	@upload path /api/upload
+	handle @upload {
+		request_body {
+			max_size 101MB
+		}
+		reverse_proxy 127.0.0.1:8080 {
+			flush_interval -1
+		}
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8080 {
+			flush_interval -1
+		}
+	}
+}

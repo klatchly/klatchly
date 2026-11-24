@@ -1,0 +1,5 @@
+// The device the page runs on. No imports: shared by the public boot entry (viewport.ts) and the app (push.ts…).
+
+export const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+export const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;

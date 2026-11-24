@@ -1,0 +1,8 @@
+{
+  "name": "klatchly-e2e",
+  "private": true,
+  "description": "Playwright end-to-end checks (run in mcr.microsoft.com/playwright:v1.48.0-jammy, see docs/tests.md)",
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

@@ -1,0 +1,3 @@
+/* The accounts package's colour (the cards' hover, the active tile), on the launch path with its Settings entry. */
+:root { --sec-networks: #2f6fb3; }
+@media (prefers-color-scheme: dark) { :root { --sec-networks: #7fb2ea; } }

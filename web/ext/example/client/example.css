@@ -1,0 +1,5 @@
+/* The Example chunk's own styles (loaded with it, not at launch). Most of its look is the core's shared pieces
+   (client/src/styles.css: "Space dashboards", the Settings rows); a package adds only what is its own, with
+   classes prefixed by its id. Colours from the core's variables, so light and dark both work. */
+.example-list { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+.example-greeting { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }

@@ -1,0 +1,6 @@
+/* The Agents space's colour (sidebar button, active row, filter chips) and the count on its button: on the launch
+   path, with the button. */
+:root { --sec-agents: #7a52c7; }
+@media (prefers-color-scheme: dark) { :root { --sec-agents: #b79cf2; } }
+.sec-agents { --sec: var(--sec-agents); }
+.sec-agents .icon-count { background: var(--accent); color: var(--accent-ink); }

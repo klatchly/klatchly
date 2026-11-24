@@ -1,0 +1,35 @@
+/* Settings → Extensions (Extensions.tsx, its own chunk): one card per package, in columns of at least 340 px and at
+   most two (a column never narrower than half the row): two on a wide pane, one on a narrow one or a phone. A card's
+   head (name, version, switch) at its top, its facts at its bottom, so the cards of a row line up; a question
+   (cascade, offer) or a failure under the facts. */
+.ext-list > .settings-hint { margin: 0 2px 6px; }
+.ext-list > .settings-lead { margin-top: 18px; }
+.ext-list > .settings-hint:last-of-type { margin-bottom: 16px; }
+.ext-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, max(340px, calc(50% - 6px))), 1fr)); gap: 12px; }
+.ext-pkg { display: flex; flex-direction: column; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--pane); }
+.ext-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ext-title { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.ext-title h3 { margin: 0; font-size: 15.5px; overflow-wrap: anywhere; }
+.ext-version { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.settings .ext-desc { margin: 4px 0 8px; font-size: 13.5px; line-height: 1.4; }
+.ext-badges { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.ext-badge { font-size: 12px; line-height: 1; padding: 4px 7px; border-radius: 999px; background: var(--pane-2); color: var(--muted); }
+.ext-badge.ext-connector { color: var(--sec-chats); }
+.ext-badge.ext-space { color: var(--accent); }
+.ext-badge.ext-augmentation { color: var(--sec-lowpri); }
+.settings .ext-scope { margin: 0 0 4px; font-size: 13px; line-height: 1.35; color: var(--muted); }
+.settings .ext-scope.ext-warn { color: var(--danger); font-weight: 600; }
+.settings .ext-state { margin: 2px 0 4px; font-size: 13.5px; font-weight: 600; }
+.ext-off .ext-state { color: var(--muted); }
+.ext-off .ext-title h3 { color: var(--muted); }
+.ext-pkg > .settings-hint { margin: 0 0 4px; }
+.ext-facts {
+  display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: auto 0 0; padding-top: 8px;
+  border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted);
+}
+.ext-facts dt { font-weight: 600; }
+.ext-facts dd { margin: 0; overflow-wrap: anywhere; }
+.ext-ask { margin: 10px 0 0; }
+.ext-pkg > .settings-note { margin: 8px 0 0; }
+
+/* The switch (.ext-switch) is in settings.css: Lecture discrète uses it too. */

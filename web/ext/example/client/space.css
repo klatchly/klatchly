@@ -1,0 +1,5 @@
+/* The space's colour (its sidebar button, the active row): on the launch path, with the button. The core sets the
+   class sec-<space id>; a package defines only the variable behind it, light and dark. */
+:root { --sec-example: #8a5cc2; }
+@media (prefers-color-scheme: dark) { :root { --sec-example: #b99be6; } }
+.sec-example { --sec: var(--sec-example); }

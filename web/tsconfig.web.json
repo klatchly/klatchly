@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "types": ["vite/client", "vite-plugin-pwa/client"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "resolveJsonModule": true
+  },
+  "include": ["client/src/**/*.ts", "client/src/**/*.tsx", "server/locales/*.ts", "server/richtext.ts", "server/extension.ts", "ext/packages.client.ts", "ext/*/package.ts", "ext/*/locales/*.ts", "ext/*/client/**/*.ts", "ext/*/client/**/*.tsx", "vite.config.ts"]
+}

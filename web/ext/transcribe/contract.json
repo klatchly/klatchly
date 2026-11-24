@@ -1,0 +1,33 @@
+{
+ "version": "1.0.0",
+ "entries": {
+  "ext/transcribe/api.ts#TranscribeAudio": "interface TranscribeAudio",
+  "ext/transcribe/api.ts#TranscribeAudio.data": "data:Uint8Array",
+  "ext/transcribe/api.ts#TranscribeAudio.duration": "duration?:number",
+  "ext/transcribe/api.ts#TranscribeAudio.mime": "mime:string",
+  "ext/transcribe/api.ts#TranscribeErrorCode": "type TranscribeErrorCode='unavailable'|'unsupported_format'|'too_large'|'too_long'|'rejected'|'failed'",
+  "ext/transcribe/api.ts#TranscribeFailure": "interface TranscribeFailure extends Error",
+  "ext/transcribe/api.ts#TranscribeFailure.code": "code:TranscribeErrorCode",
+  "ext/transcribe/api.ts#TranscribeOptions": "interface TranscribeOptions",
+  "ext/transcribe/api.ts#TranscribeOptions.feature": "feature?:string",
+  "ext/transcribe/api.ts#TranscribeOptions.language": "language?:string",
+  "ext/transcribe/api.ts#TranscribeOptions.provider": "provider?:string",
+  "ext/transcribe/api.ts#TranscribeOptions.signal": "signal?:AbortSignal",
+  "ext/transcribe/api.ts#TranscribeProvider": "interface TranscribeProvider extends ProviderModule",
+  "ext/transcribe/api.ts#TranscribeProvider.accepts": "accepts(mime:string,provider?:string):boolean",
+  "ext/transcribe/api.ts#TranscribeProvider.label": "label():string|null",
+  "ext/transcribe/api.ts#TranscribeProvider.maxSeconds": "readonly maxSeconds:number",
+  "ext/transcribe/api.ts#TranscribeProvider.transcribe": "transcribe(audio:TranscribeAudio,opts?:TranscribeOptions):Promise<Transcript>",
+  "ext/transcribe/api.ts#Transcript": "interface Transcript",
+  "ext/transcribe/api.ts#Transcript.language": "language?:string",
+  "ext/transcribe/api.ts#Transcript.ms": "ms:number",
+  "ext/transcribe/api.ts#Transcript.provider": "provider:string",
+  "ext/transcribe/api.ts#Transcript.text": "text:string",
+  "ext/transcribe/api.ts#export:TranscribeAudio": "ext/transcribe/api.ts#TranscribeAudio",
+  "ext/transcribe/api.ts#export:TranscribeErrorCode": "ext/transcribe/api.ts#TranscribeErrorCode",
+  "ext/transcribe/api.ts#export:TranscribeFailure": "ext/transcribe/api.ts#TranscribeFailure",
+  "ext/transcribe/api.ts#export:TranscribeOptions": "ext/transcribe/api.ts#TranscribeOptions",
+  "ext/transcribe/api.ts#export:TranscribeProvider": "ext/transcribe/api.ts#TranscribeProvider",
+  "ext/transcribe/api.ts#export:Transcript": "ext/transcribe/api.ts#Transcript"
+ }
+}

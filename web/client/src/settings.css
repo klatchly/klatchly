@@ -1,0 +1,74 @@
+/* Settings' menu in the list column (Settings.tsx SettingsMenu): rows like a space's list; a row's mark in a tinted
+   tile, the current page's row marked as a chat's. In the Settings chunk, not at launch. */
+.settings-core { padding-top: 6px; }
+.settings-items { list-style: none; margin: 0; padding: 0; }
+.settings-item { gap: 12px; min-height: 48px; padding: 7px 14px; }
+.settings-item-icon {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+.settings-item-label { flex: 1; min-width: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settings-item-go { flex: none; color: var(--muted); opacity: 0.7; }
+.settings-item-count { flex: none; }
+.settings-item.active .settings-item-label { font-weight: 600; }
+.settings-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* On a wide screen the page is beside its row: no arrow. */
+@media (min-width: 800px) { .settings-item-go { display: none; } }
+@media (pointer: coarse) { .settings-item { min-height: 52px; } }
+
+/* A page (Settings.tsx Page) on the app's backdrop, centred in a readable width (a wide pane keeps its margins
+   even), its rows in cards (.set-group, styles.css): the label and its help on the left, the control on the right,
+   thin lines between them; stacked when the page is narrow (a phone, or a pane squeezed by the list column: a
+   container query, not the viewport's width). A wide page (Extensions) holds a grid of cards. */
+.settings-body {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  background: var(--bg); container-type: inline-size;
+}
+.settings-content { max-width: 920px; margin: 0 auto; padding: 6px 32px calc(32px + env(safe-area-inset-bottom)); }
+.settings-content.wide { max-width: 1180px; padding-top: 4px; }
+/* A page without a group title opens with its first card: the same air as under a title. */
+.settings-content > .set-group:first-child, .settings-content > :first-child > .set-group:first-child { margin-top: 22px; }
+.settings p { font-size: 14.5px; line-height: 1.45; margin: 0 0 6px; }
+.settings .set-row p:last-child, .settings .set-control p { margin-bottom: 0; }
+.settings-state { font-weight: 600; }
+.set-text .settings-state { font-weight: 500; }
+.settings .settings-hint { font-size: 13.5px; }
+.settings .settings-diag { font-size: 12px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* A state with a mark: on (the accent), off or unavailable (muted). */
+.settings-state[data-state] { display: flex; align-items: baseline; gap: 8px; }
+.settings-state[data-state]::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); opacity: 0.6; transform: translateY(-1px); }
+.settings-state[data-state='on']::before { background: var(--accent); opacity: 1; }
+.settings-state[data-state='']::before { display: none; }
+.settings-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.settings-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.settings-confirm { font-size: 14px; font-weight: 600; margin-right: 4px; }
+.settings .text-btn { min-height: 36px; font: inherit; font-size: 14.5px; color: var(--text); white-space: nowrap; }
+.settings .text-btn.primary { color: var(--accent-ink); }
+.settings .text-btn.danger { color: var(--danger); }
+/* Choices (language, sign-in method): one segmented control, the chosen one filled. */
+.lang-picker { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 3px; border-radius: 10px; background: var(--pane-2); }
+.lang-picker .text-btn { min-width: 88px; border-color: transparent; background: transparent; }
+.lang-picker .text-btn[aria-checked='true'] { background: var(--accent); border-color: var(--accent); }
+@media (hover: hover) { .lang-picker .text-btn[aria-checked='false']:hover:not(:disabled) { background: var(--pane); } }
+@media (pointer: coarse) { .settings .text-btn { min-height: 44px; } }
+@media (max-width: 799px) {
+  .settings-content { padding: 0 16px calc(24px + env(safe-area-inset-bottom)); }
+  .settings-content.wide { padding-top: 0; }
+}
+@container (max-width: 560px) {
+  .set-group { padding: 0 14px; }
+  .set-row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 14px 0; }
+  .set-control { justify-self: stretch; max-width: none; align-items: stretch; text-align: left; }
+  .settings-actions { justify-content: flex-start; }
+  .lang-picker { display: flex; justify-content: flex-start; }
+  .lang-picker .text-btn { flex: 1 1 0; min-width: 0; }
+}
+
+/* The switch: a track and a knob, 44 px wide (a finger's reach), the accent when on (Extensions, Lecture discrète: reading.css). */
+.ext-switch { flex-shrink: 0; position: relative; width: 44px; height: 26px; border-radius: 13px; border: 0; padding: 0; background: var(--line); cursor: pointer; transition: background 0.15s; }
+.ext-switch > span { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.25); transition: transform 0.15s; }
+.ext-switch[aria-checked='true'] { background: var(--accent); }
+.ext-switch[aria-checked='true'] > span { transform: translateX(18px); }
+.ext-switch:disabled { opacity: 0.45; cursor: default; }
+.ext-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .ext-switch, .ext-switch > span { transition: none; } }

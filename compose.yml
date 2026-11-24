@@ -1,0 +1,142 @@
+# Klatchly: Beeper in the browser. Two services:
+# - beeper-server: the official headless Beeper Server (Linux build), Desktop API on port 23373. Its token IS the
+#   Beeper (Matrix) access token, and a server not yet signed in lets anyone who reaches it sign it in to THEIR
+#   account: never published, never behind the reverse proxy. Only klatchly talks to it, over the compose network.
+#   Debugging: docker compose exec beeper-server bash (or publish "127.0.0.1:23373:23373" TEMPORARILY).
+#   Setup, first sign-in, token file, backups: docs/beeper-server.md.
+# - klatchly: the web app (SPA + backend: passkeys, allow-listed relay to beeper-server, WebSocket), published on
+#   127.0.0.1 only, behind a reverse proxy that terminates TLS (deploy/Caddyfile.example) or Cloudflare Tunnel.
+#   First passkey: docker compose exec klatchly /nodejs/bin/node /app/dist/cli.js enroll
+#
+# Configuration: every instance value comes from .env (copy .env.example and fill it in; see docs/self-hosting.md).
+# Anything specific to your own host (extra networks, extra services, extra secrets, private packages) goes in a
+# compose.override.yml next to this file: docker compose reads it automatically and merges it over this one.
+# Secrets are files (secrets/, never committed), referenced by path variables; never put a secret in .env.
+#
+# Data: volumes beeper-data (Matrix session, E2EE keys, SQLite) and klatchly-data (state.json: passkeys, hashed
+# sessions, hashed enrollment codes); beeper-cache holds the app beeper-server unpacks on its first start (no data:
+# deleting it only costs one more unpack). Images are built locally (pull_policy: never); tag = Beeper / klatchly version.
+name: ${COMPOSE_PROJECT_NAME:-klatchly}
+
+services:
+  beeper-server:
+    build:
+      context: ./server
+      # Runtime uid/gid and owner of /data: an otherwise unused uid on the host.
+      args:
+        KLATCHLY_UID: ${KLATCHLY_UID:-10001}
+        KLATCHLY_GID: ${KLATCHLY_GID:-10001}
+    image: beeper-server:4.3.284
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      TZ: ${KLATCHLY_TZ:-UTC}
+    volumes:
+      - beeper-data:/data
+      # The binary unpacks its embedded app here on first start (XDG_CACHE_HOME=/cache in the image), once: the
+      # volume survives restarts and recreations. The only writable place with /data and /tmp.
+      - beeper-cache:/cache
+    # No published port (see the header for debugging).
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 1536m
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+
+  klatchly:
+    build:
+      context: ./web
+      args:
+        KLATCHLY_UID: ${KLATCHLY_UID:-10001}
+        KLATCHLY_GID: ${KLATCHLY_GID:-10001}
+        # Packages built in, comma-separated ids (empty: the tree's default list, web/ext/packages.json).
+        KLATCHLY_PACKAGES: ${KLATCHLY_PACKAGES:-}
+      # Packages from another folder (<id>/ folders, and an optional packages.json), in compose.override.yml:
+      #   services: {klatchly: {build: {additional_contexts: {extra: ../my-packages}}}}
+    image: klatchly:0.26.1
+    pull_policy: never
+    restart: unless-stopped
+    user: "${KLATCHLY_UID:-10001}:${KLATCHLY_GID:-10001}"
+    depends_on:
+      beeper-server:
+        condition: service_healthy
+    environment:
+      TZ: ${KLATCHLY_TZ:-UTC}
+      # WebAuthn origin and RP ID: set here, never derived from Host / X-Forwarded-*. Exactly the public address.
+      # Local test without a proxy: KLATCHLY_ORIGIN=http://localhost:8080 KLATCHLY_RP_ID=localhost
+      KLATCHLY_ORIGIN: ${KLATCHLY_ORIGIN:?set KLATCHLY_ORIGIN in .env (e.g. https://klatchly.example.com)}
+      KLATCHLY_RP_ID: ${KLATCHLY_RP_ID:?set KLATCHLY_RP_ID in .env (the origin host or a parent domain)}
+      # Other addresses still served (comma-separated origins, e.g. the old one after a move), each its own RP ID.
+      KLATCHLY_ALT_ORIGINS: ${KLATCHLY_ALT_ORIGINS:-}
+      # Proxies (CIDR) whose client-IP header is believed. A proxy on the host reaches the container from the
+      # compose network's gateway, not 127.0.0.1: add it (docker network inspect <project>_default).
+      KLATCHLY_TRUSTED_PROXIES: ${KLATCHLY_TRUSTED_PROXIES:-127.0.0.1/32,::1/128}
+      KLATCHLY_UPSTREAM: http://beeper-server:23373
+      KLATCHLY_TOKEN_FILE: /run/secrets/beeper_token
+      KLATCHLY_DATA_DIR: /data
+      # Sign-in through an OIDC provider, next to the passkeys (docs/self-hosting.md, "Sign-in with an OIDC
+      # provider"). Empty issuer: off, nothing changes. The client secret is a file (a secret added in
+      # compose.override.yml).
+      KLATCHLY_OIDC_ISSUER: ${KLATCHLY_OIDC_ISSUER:-}
+      KLATCHLY_OIDC_CLIENT_ID: ${KLATCHLY_OIDC_CLIENT_ID:-}
+      KLATCHLY_OIDC_CLIENT_SECRET_FILE: ${KLATCHLY_OIDC_CLIENT_SECRET_FILE:-}
+      KLATCHLY_OIDC_LABEL: ${KLATCHLY_OIDC_LABEL:-}
+      KLATCHLY_OIDC_SCOPES: ${KLATCHLY_OIDC_SCOPES:-}
+      KLATCHLY_OIDC_ALLOWED_SUB: ${KLATCHLY_OIDC_ALLOWED_SUB:-}
+      # Packages llm + writing: the "server's" provider (others are added in Settings). Empty URL: none. With the
+      # URL, the model and the llm_key secret are required (secret: see docs/self-hosting.md), or both packages
+      # turn off (reason in the logs).
+      KLATCHLY_LLM_URL: ${KLATCHLY_LLM_URL:-}
+      KLATCHLY_LLM_MODEL: ${KLATCHLY_LLM_MODEL:-}
+      KLATCHLY_LLM_FALLBACK: ${KLATCHLY_LLM_FALLBACK:-}
+      KLATCHLY_LLM_LABEL: ${KLATCHLY_LLM_LABEL:-}
+      KLATCHLY_LLM_KEY_FILE: /run/secrets/llm_key
+      # Package transcribe: the "server's" speech-to-text provider, NVIDIA's hosted Riva models (others are added in
+      # Settings, Transcription). Empty key file: none. The key is a file, a secret added in compose.override.yml
+      # (docs/self-hosting.md), e.g. KLATCHLY_TRANSCRIBE_NVIDIA_KEY_FILE=/run/secrets/transcribe_nvidia_key in .env; the
+      # model (a preset id or an NVCF function id, default whisper-large-v3) and the language (empty: automatic) are
+      # optional.
+      KLATCHLY_TRANSCRIBE_NVIDIA_KEY_FILE: ${KLATCHLY_TRANSCRIBE_NVIDIA_KEY_FILE:-}
+      KLATCHLY_TRANSCRIBE_NVIDIA_MODEL: ${KLATCHLY_TRANSCRIBE_NVIDIA_MODEL:-}
+      KLATCHLY_TRANSCRIBE_NVIDIA_LANGUAGE: ${KLATCHLY_TRANSCRIBE_NVIDIA_LANGUAGE:-}
+      # Package agents: its manifest (which agents, what is shown and said about them: docs/self-hosting.md
+      # "Agents manifest"), a path in the container, the file mounted read-only by compose.override.yml. Empty:
+      # KLATCHLY_HERMES_AGENTS, and the next two: on whose behalf the agent writes, where a chat's messages go.
+      KLATCHLY_AGENTS_FILE: ${KLATCHLY_AGENTS_FILE:-}
+      KLATCHLY_AGENTS_OWNER_NAME: ${KLATCHLY_AGENTS_OWNER_NAME:-}
+      KLATCHLY_AGENTS_LABEL: ${KLATCHLY_AGENTS_LABEL:-}
+    secrets: [beeper_token]
+    networks:
+      default: {}
+    volumes:
+      - klatchly-data:/data
+    ports:
+      - "127.0.0.1:${KLATCHLY_PORT:-8080}:8080"
+    read_only: true
+    mem_limit: 256m
+    pids_limit: 64
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/nodejs/bin/node", "/app/dist/cli.js", "health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+
+secrets:
+  # The Beeper token (docs/beeper-server.md), readable by KLATCHLY_UID only (0400).
+  beeper_token:
+    file: ${BEEPER_TOKEN_PATH:-./secrets/beeper-token}
+
+volumes:
+  beeper-data:
+  beeper-cache:
+  klatchly-data:

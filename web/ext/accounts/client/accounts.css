@@ -1,0 +1,113 @@
+/* Settings → Networks (AccountsSpace.tsx): the dashboard (one card per account) or one account, as a page of
+   Settings. Neutral surfaces;
+   colour only for status. Loaded with the space's chunk, after the core styles; buttons, cards, pills and the board
+   are the core's (client/src/styles.css, "Space dashboards"), the sidebar colour is in space.css. */
+.acc-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: color-mix(in srgb, var(--muted) 60%, transparent); }
+.acc-dot.ok { background: var(--space-ok); }
+.acc-dot.busy { background: var(--space-warn); }
+.acc-dot.trouble { background: var(--danger); }
+.space-pill.acc-busy { color: var(--space-warn); background: color-mix(in srgb, var(--space-warn) 13%, transparent); }
+
+/* The network's mark in a tile, its status as a dot on the corner. */
+.acc-tile {
+  position: relative; flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--pane-2);
+}
+.acc-tile .net-badge { position: static; padding: 0; background: transparent; }
+.acc-tile .net-letter { width: 24px; height: 24px; border: 0; border-radius: 7px; font-size: 13px; }
+.acc-tile .acc-dot { position: absolute; right: -3px; bottom: -3px; width: 13px; height: 13px; border: 2.5px solid var(--pane); }
+.acc-tile.off { filter: grayscale(0.8); opacity: 0.7; }
+
+/* Dashboard */
+.acc-summary { display: flex; flex-wrap: wrap; gap: 8px; }
+.acc-stat {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+  background: var(--pane); border: 1px solid var(--line); font-size: 13.5px;
+}
+.acc-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.acc-card { padding: 0; gap: 0; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; }
+.space-card.is-dead { border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); }
+.acc-card-link { display: flex; flex-direction: column; gap: 10px; padding: 14px; color: inherit; text-decoration: none; }
+@media (hover: hover) { .acc-card:hover { border-color: color-mix(in srgb, var(--sec-networks) 45%, var(--line)); } }
+.acc-card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 12px; }
+.acc-card-head { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.acc-card-title { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.acc-card-net { font-weight: 650; font-size: 15.5px; }
+.acc-card-who, .acc-status-line { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-handle { opacity: 0.85; }
+.acc-status-line { white-space: normal; color: var(--text); }
+.acc-since { color: var(--muted); }
+.acc-card-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--line); }
+.acc-where { white-space: nowrap; }
+.acc-card > .acc-hint { margin: 0 14px 14px; }
+.acc-readonly { text-align: center; }
+
+/* Figures: the number large, its word under it. */
+.acc-figures { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.acc-figures.loading { min-height: 58px; border-radius: 10px; background: var(--pane-2); animation: skeleton 1.4s ease-in-out infinite; }
+.acc-figures.compact.loading { min-height: 48px; }
+.acc-figure { display: flex; flex-direction: column; gap: 1px; padding: 9px 10px; border-radius: 10px; background: var(--pane-2); min-width: 0; }
+.acc-figures:not(.compact) .acc-figure { background: var(--pane); border: 1px solid var(--line); padding: 12px; }
+.acc-figure-n { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.acc-figures:not(.compact) .acc-figure-n { font-size: 24px; }
+.acc-figure-label { font-size: 11.5px; line-height: 1.25; color: var(--muted); overflow-wrap: anywhere; }
+.acc-figure.unread:not(.zero) .acc-figure-n { color: var(--accent); }
+.acc-figure.zero .acc-figure-n { color: var(--muted); font-weight: 500; }
+
+/* One account */
+.acc-head-pill { margin-left: auto; flex-shrink: 0; }
+.acc-status-big { margin: 0; display: flex; align-items: baseline; gap: 9px; font-size: 14.5px; }
+.acc-status-big .acc-dot { transform: translateY(-1px); }
+.acc-status-text { color: var(--text); }
+.acc-kvs { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; }
+.acc-kv { display: contents; }
+.acc-kv dt { color: var(--muted); }
+.acc-kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.acc-net-inline { display: inline-flex; align-items: center; gap: 6px; }
+.acc-net-inline .net-badge { position: static; padding: 0; background: transparent; }
+.acc-net-inline .net-letter { width: 14px; height: 14px; border: 0; font-size: 9px; }
+.acc-chats .acc-chat { padding: 9px 14px; border-radius: 0; }
+.acc-chats li + li .acc-chat { border-top: 1px solid var(--line); }
+.acc-chats li:first-child .acc-chat { border-radius: 12px 12px 0 0; }
+.acc-chats li:last-child .acc-chat { border-radius: 0 0 12px 12px; }
+.acc-chats li:only-child .acc-chat { border-radius: 12px; }
+.acc-caps { list-style: none; margin: 0; padding: 4px 0; gap: 0; }
+.acc-cap { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 14px; }
+.acc-cap + .acc-cap { border-top: 1px solid var(--line); }
+.acc-cap-mark { width: 22px; height: 22px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; font-size: 12px; font-weight: 700; }
+.acc-cap.yes .acc-cap-mark { color: var(--space-ok); background: color-mix(in srgb, var(--space-ok) 13%, transparent); }
+.acc-cap.no .acc-cap-mark { color: var(--muted); background: var(--pane-2); }
+.acc-cap.no .acc-cap-name { color: var(--muted); }
+.acc-cap-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.acc-cap-detail { font-size: 12.5px; color: var(--muted); }
+.acc-cap-state { font-size: 12.5px; color: var(--muted); flex-shrink: 0; }
+
+@media (max-width: 799px) {
+  .acc-grid { grid-template-columns: 1fr; }
+  .acc-figures { gap: 6px; }
+  .acc-figure-n { font-size: 18px; }
+  .acc-figures:not(.compact) .acc-figure-n { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .acc-card { transition: none; } .acc-figures.loading { animation: none; } }
+
+/* The refresh button turns while the accounts are read again. */
+.icon-btn.acc-spinning svg { animation: spin 0.9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .icon-btn.acc-spinning svg { animation: none; } }
+
+/* The QR code that signs a source's session in again: on white, whatever the theme (a phone camera reads it). */
+.acc-qr { margin: 10px 0 4px; }
+.acc-qr-body { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 8px; }
+.acc-qr-img { width: min(256px, 70vw); height: auto; background: #fff; padding: 8px; border-radius: 12px; image-rendering: pixelated; }
+.acc-qr-note { margin: 0; color: var(--muted); font-size: 14px; max-width: 520px; }
+
+/* Settings → Networks (1.2): the dashboard and one account as a page of Settings, in its centred column. */
+.acc-settings { display: flex; flex-direction: column; gap: 14px; min-width: 0; margin-top: 18px; }
+.acc-settings-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.acc-settings-body { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.acc-settings .acc-grid { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+.acc-back {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px 4px 4px; margin-left: -4px;
+  border-radius: 8px; color: var(--accent); font-size: 14px; text-decoration: none;
+}
+@media (hover: hover) { .acc-back:hover { background: var(--hover); } }
+.acc-detail-head { display: flex; align-items: center; gap: 11px; min-width: 0; }

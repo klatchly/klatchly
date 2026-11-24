@@ -1,0 +1,126 @@
+# CI of klatchly (docs/tests.md): tier 1 (typecheck, unit tests, build) on every push to main and every pull
+# request, the dependency audit, and the offline end-to-end scripts on demand only (workflow_dispatch: they need the
+# pinned Playwright image and take minutes). No secret, no deployment, read-only token: safe on any copy of the
+# repository (the public one, the owner's private one, a fork). The tests reach no real service (fake backends in
+# the same process); the jobs reach only GitHub and the npm registry.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'docs/**']
+  pull_request:
+    paths-ignore: ['**/*.md', 'docs/**']
+  # New advisories on dependencies that did not change: the audit alone, weekly.
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      e2e:
+        description: 'Also run the offline end-to-end scripts (Playwright image, several minutes)'
+        type: boolean
+        default: false
+      scripts:
+        description: 'Only these e2e scripts (paths from web/test/e2e, separated by spaces; empty: all)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  tier1:
+    name: Typecheck, unit tests, build
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      # The personal-strings part of test/privacy.test.ts is skipped (no web/test/.privacy-denylist here).
+      - run: npm test
+      - run: npm run build
+      # What the image ships (production packages, the browser bundle as built): fails on GPL, AGPL, a missing or
+      # unknown license; LGPL-3.0-or-later only for sharp's libvips (allowlist and reasons: POLICY in the script).
+      # npm run build already applies it while writing THIRD_PARTY_LICENSES.txt and the SBOM; this step shows the count.
+      - name: Licenses of shipped code
+        run: node scripts/licenses.mjs --check
+      # Only where the gateway is in the tree (not in the public one).
+      - name: Zalo gateway tests
+        if: hashFiles('zalo-gateway/gateway.test.mjs') != ''
+        working-directory: zalo-gateway
+        run: node --test gateway.test.mjs
+
+  audit:
+    name: npm audit (production dependencies)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      # Blocking from "high" up, production dependencies only: they run in the process that holds the Beeper token.
+      # Moderate and low advisories are listed by the next step but do not fail the run.
+      - name: Production dependencies (fails on high or critical)
+        run: npm audit --omit=dev --audit-level=high
+      # The build tools (vite-plugin-pwa → workbox-build…) never ship in the image: a report, never a failure.
+      - name: All dependencies (report only)
+        continue-on-error: true
+        run: npm audit
+
+  e2e:
+    name: End-to-end, offline
+    if: github.event_name == 'workflow_dispatch' && inputs.e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      # The scripts need build-test/ (fake services compiled by npm test) and dist/.
+      - run: npm test
+      - run: npm run build
+      # The version of the Playwright image's browsers (run-offline.sh).
+      - name: Playwright client
+        working-directory: web/test/e2e
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.48.0
+      - name: Scripts (offline instances, no network in the container)
+        working-directory: .
+        env:
+          SCRIPTS: ${{ inputs.scripts }}
+        run: |
+          case "$SCRIPTS" in *[!A-Za-z0-9._/\ -]*) echo "unexpected characters in scripts" >&2; exit 2 ;; esac
+          # Word splitting wanted: one argument per script named.
+          sh web/test/e2e/run-offline.sh $SCRIPTS
+      - name: Logs and screenshots
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-shots
+          path: web/test/e2e/shots/
+          retention-days: 7

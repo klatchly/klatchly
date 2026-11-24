@@ -1,0 +1,64 @@
+/* Settings → Providers and Default models (Providers.tsx, DefaultModels.tsx): a card of the core's Settings rows
+   (.set-group, .set-*) per provider or use, under its name (the fieldset's legend, styled as the core's group
+   titles), as the other Settings pages. On a narrow page (the rows' container query) the controls take the full
+   width and wrap; touch targets are 44 px on a touch screen. */
+.llm-page { margin: 0; }
+.llm-page > .stepup { margin: 0 0 6px; }
+.llm-page > .settings-hint + .settings-hint { margin: -8px 2px 6px; }
+.llm-group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.llm-legend {
+  float: left; width: 100%; padding: 22px 2px 8px; font-size: 13px; font-weight: 600; line-height: 1.3;
+  color: var(--muted); overflow-wrap: anywhere;
+}
+.llm-legend + * { clear: both; }
+.llm-group > .set-group { margin-bottom: 0; }
+.llm-label { display: block; }
+.llm-tag { display: inline-block; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; font-weight: 500; color: var(--muted); vertical-align: 1px; }
+.settings .llm-status { margin: 0; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.llm-url { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.set-control.llm-pick, .set-control.llm-actions { flex-direction: row; align-items: center; justify-content: flex-end; }
+.llm-pick select, .llm-field select {
+  width: min(280px, 100%); min-width: 0; font: inherit; font-size: 16px; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); text-overflow: ellipsis;
+}
+.settings .llm-btn { flex: none; min-height: 36px; padding: 4px 12px; font-size: 13.5px; }
+.llm-result.bad, .llm-error { color: var(--danger); }
+.llm-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.llm-add { justify-content: flex-start; padding: 16px 0 4px; }
+.set-group > .llm-status { padding: 0 0 12px; }
+
+/* A provider's form (add, edit): fields stacked, full width. */
+.llm-form { display: flex; flex-direction: column; gap: 10px; padding: 14px 0 16px; border-bottom: 1px solid var(--line); }
+.llm-field { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; font-weight: 600; }
+.llm-field select { width: 100%; }
+.llm-input {
+  width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--pane); color: var(--text); font: inherit; font-size: 16px; font-weight: 400;
+}
+.llm-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.llm-form .settings-hint { margin: 0; font-size: 12.5px; font-weight: 400; }
+.llm-form .llm-actions { justify-content: flex-start; }
+
+/* A provider's models: a filter, the list with a box per model (scrolls past a dozen), one added by hand. */
+.llm-models { display: flex; flex-direction: column; gap: 8px; padding: 12px 0 16px; border-bottom: 1px solid var(--line); }
+.llm-models .settings-hint { margin: 0; font-size: 12.5px; }
+.llm-line { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.llm-line .llm-input { flex: 1; }
+.llm-list { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+.llm-list li + li { border-top: 1px solid var(--line); }
+.llm-check { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 4px 10px; font-size: 14px; cursor: pointer; min-width: 0; }
+.llm-check input { flex: none; width: 18px; height: 18px; margin: 0; }
+.llm-check-text { min-width: 0; overflow-wrap: anywhere; }
+.llm-check-sub { display: block; font-size: 12px; color: var(--muted); }
+.llm-all { font-weight: 600; }
+
+@media (pointer: coarse) {
+  .settings .llm-btn { min-height: 44px; }
+  .llm-check { min-height: 44px; }
+}
+@container (max-width: 560px) {
+  .set-control.llm-pick { flex-wrap: wrap; justify-content: flex-end; }
+  .llm-pick select { flex: 1 1 100%; width: 100%; }
+  .llm-actions, .set-control.llm-actions { justify-content: flex-start; }
+  .set-control.llm-one { align-items: flex-start; }
+}

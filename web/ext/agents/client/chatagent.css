@@ -1,0 +1,42 @@
+/* The agent inside a chat's chunk (ChatAgent.tsx): loaded with a conversation. Built on the core's composer and
+   header pieces (.assist-*, .msg-menu, .newchat…). */
+
+/* Agent inside a chat (ChatAgent.tsx): header chip next to the writing-help one, panel (popover on desktop,
+   bottom sheet on touch), drafts above the composer. */
+.assist-chip.agent-chip { font-size: 11.5px; font-weight: 600; flex-shrink: 1; }
+.agent-chip.on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.agent-chip.on.risky { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 55%, transparent); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+@media (max-width: 799px) { .agent-chip .assist-chip-text { max-width: 9em; } }
+.msg-menu.agent-panel.popover { width: 400px; }
+.agent-form { display: flex; flex-direction: column; gap: 8px; padding: 0 4px 4px; font-size: 14px; }
+.agent-form fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 8px 0 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.agent-form legend { padding: 0; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.agent-radio, .agent-check { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; line-height: 1.35; }
+.agent-radio input, .agent-check input { margin: 2px 0 0; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--accent); }
+.agent-radio > span, .agent-check > span { display: flex; flex-direction: column; min-width: 0; }
+.agent-sub { color: var(--muted); font-size: 12.5px; }
+.agent-desc { color: var(--muted); font-size: 12.5px; }
+.agent-warn { margin: 2px 0; padding: 6px 10px; border-left: 3px solid var(--danger); border-radius: 6px; background: color-mix(in srgb, var(--danger) 9%, transparent); font-size: 13px; line-height: 1.35; }
+.agent-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.agent-field > span:first-child { min-width: 0; }
+.agent-form input[type="text"], .agent-form input[type="number"], .agent-form select, .agent-form textarea {
+  font: inherit; font-size: 16px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); min-width: 0;
+}
+.agent-form input[type="number"] { width: 5.5em; }
+.agent-handle { display: inline-flex; align-items: center; gap: 2px; color: var(--muted); }
+.agent-handle input { width: 9em; }
+.agent-notes { flex-direction: column; align-items: stretch; }
+.agent-notes textarea { resize: vertical; }
+.agent-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.agent-history { border-top: 1px solid var(--line); padding-top: 6px; font-size: 13px; }
+.agent-history summary { cursor: pointer; color: var(--muted); }
+.agent-history ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+.agent-history time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.agent-hist-text { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agent-drafts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.agent-draft { display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; border-left: 3px solid var(--accent); border-radius: 8px; background: var(--pane-2); font-size: 14px; }
+.agent-draft .assist-bar-label { display: inline-flex; align-items: center; gap: 4px; }
+.agent-draft-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 8em; overflow-y: auto; }
+.agent-prefix { color: var(--muted); }
+.agent-draft-actions { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
+@media (pointer: coarse) { .agent-draft-actions .text-btn { min-height: 40px; } }

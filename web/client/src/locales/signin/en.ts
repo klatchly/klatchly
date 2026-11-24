@@ -1,0 +1,76 @@
+// Settings → Général → Sign-in (SignInSettings.tsx, its own chunk), and the step-up box (StepUp.tsx), English: the
+// reference. Its shape defines `SignInMessages`; every other file of this folder is a language (as in server/locales/)
+// and must match it.
+
+import type { Widen } from '../../../../server/locales/en.js';
+
+const plural = (n: number, one: string, other: string) => (new Intl.PluralRules('en').select(n) === 'one' ? one : other);
+
+const messages = {
+  label: 'Sign-in',
+  hint: 'Passkeys only. Your accounts are all reachable from here: sign out the devices you no longer use.',
+  hintOidc: (label: string) => `Passkeys and ${label}. Your accounts are all reachable from here: sign out the devices you no longer use.`,
+  state: (keys: number, devices: number) => `${plural(keys, `${keys} passkey`, `${keys} passkeys`)} · ${plural(devices, `${devices} device signed in`, `${devices} devices signed in`)}.`,
+  added: (label: string, when: string, from: string | null) => `New passkey “${label}” added ${when}${from ? `, from ${from}` : ''}. Not you? Remove it and sign the other devices out.`,
+  change: 'Manage…',
+  done: 'Done',
+  confirm: 'Confirm it is you to change these settings.',
+  confirmAction: 'Confirm it is you to do this.',
+  cancel: 'Cancel',
+  confirmPasskey: 'Confirm with a passkey',
+  confirmOidc: (label: string) => `Confirm with ${label}`,
+  noPasskey: 'No passkey to confirm with: add one with an enrollment code from the server (cli.js enroll, then /enroll).',
+  confirmed: (min: number) => plural(min, `Changes allowed for ${min} minute.`, `Changes allowed for ${min} minutes.`),
+  passkeys: 'Passkeys',
+  passkeysHint: 'Add a passkey on this device (or a security key plugged into it). For a device that is not signed in: cli.js enroll on the server, then open /enroll there with the code.',
+  add: 'Add a passkey',
+  addCreate: 'Create',
+  addName: 'Name of the new passkey',
+  created: (when: string) => `added ${when}`,
+  from: (device: string) => `from ${device}`,
+  lastUsed: (when: string | null) => (when ? `last used ${when}` : 'never used'),
+  rename: 'Rename',
+  name: 'Name',
+  save: 'Save',
+  remove: 'Remove',
+  removeConfirm: (label: string) => `Remove “${label}”? It will no longer sign in.`,
+  lastPasskey: 'The last passkey cannot be removed.',
+  provider: (label: string) => `Provider: ${label}`,
+  providerLinked: (sub: string, when: string) => `Linked account: subject ${sub}, since ${when}.`,
+  providerIssuer: (issuer: string) => `Issuer ${issuer}`,
+  providerPinned: (sub: string) => `Subject pinned on the server (KLATCHLY_OIDC_ALLOWED_SUB): ${sub}.`,
+  providerNone: 'No account linked: it cannot sign in yet. Get a code with cli.js enroll, then on /enroll choose the provider.',
+  providerHint: 'Only this account signs in through the provider (never by e-mail). The passkeys stay a fallback if it is down.',
+  unlink: 'Unlink',
+  unlinkConfirm: (label: string) => `Unlink the ${label} account? It will no longer sign in.`,
+  via: (how: string) => `via ${how}`,
+  passkey: 'passkey',
+  devices: 'Connected devices',
+  devicesHint: 'Each browser signed in. A sign-in lasts at most 30 days, and ends after 7 days without use.',
+  thisDevice: 'This device',
+  unknownDevice: 'Unknown browser',
+  signedIn: (when: string) => `signed in ${when}`,
+  seen: (when: string) => `active ${when}`,
+  expires: (when: string) => `until ${when}`,
+  signOut: 'Sign out',
+  signOutConfirm: (device: string) => `Sign out ${device}? It will need a passkey to come back.`,
+  signOutOthers: 'Sign out all other devices',
+  signOutOthersConfirm: 'Sign out every other device? They will need a passkey to come back.',
+  error: {
+    step_up: 'Confirm it is you first.',
+    last_passkey: 'The last passkey cannot be removed.',
+    last_method: 'Nothing else would sign in: add a passkey first.',
+    unavailable: 'The provider cannot be reached right now.',
+    not_found: 'Already gone.',
+    current: 'Use Sign out for this device.',
+    exists: 'This passkey is already listed.',
+    registered: 'This device already holds a passkey for this account: it is in the list.',
+    cancelled: 'Cancelled.',
+    invalid: 'Incorrect, try again.',
+    locked: 'Too many attempts: try again later.',
+    failed: 'Failed, try again.',
+  },
+};
+
+export type SignInMessages = Widen<typeof messages>;
+export default messages satisfies SignInMessages;

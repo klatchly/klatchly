@@ -1,0 +1,117 @@
+/* Settings → Lecture discrète (ReadingSettings.tsx, its own chunk): the page's lead, the accounts' cards (one per
+   source, its note at the card's foot) and the conversations' card. Rows keep their control beside the text even on
+   a phone (a switch, or a short segmented control under the name); targets 44 px on touch. */
+
+/* The lead: the page's mark (the menu entry's eye, in its tinted tile) and two short lines. */
+.reading-lead { display: flex; align-items: flex-start; gap: 14px; margin: 22px 2px 4px; max-width: 70ch; }
+.reading-lead-mark {
+  flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+.settings .reading-lead-text p { margin: 0; }
+.settings .reading-lead-text p + p { margin-top: 4px; }
+.reading-lead-text p:first-child { font-size: 15px; line-height: 1.45; }
+
+/* Per account: a card per source. A row: the network's mark in a round tile, the network and the account's name,
+   what the switch does now (a dot: the accent when discreet), the switch. */
+.reading-accounts > .set-group { margin-bottom: 12px; }
+.reading-accounts > .set-group:last-child { margin-bottom: 20px; }
+.set-row.reading-account { grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 0 14px; padding: 14px 0; }
+.reading-net { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pane-2); color: var(--muted); }
+.reading-net .net-badge { position: static; padding: 0; background: none; }
+.reading-net .net-letter { width: 20px; height: 20px; border: 0; font-size: 11px; }
+.reading-account .set-label { margin-bottom: 1px; }
+.reading-who { font-weight: 400; color: var(--muted); }
+.settings .reading-state { display: flex; align-items: baseline; gap: 7px; margin: 0; }
+.reading-state::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: 0.55; transform: translateY(-1px); }
+.reading-state[data-state='on']::before { background: var(--accent); opacity: 1; }
+.reading-state[data-state='blocked']::before { background: none; border: 1.5px solid var(--muted); width: 4px; height: 4px; }
+.reading-account .set-control { justify-self: end; }
+/* What is particular to the source, once, at the foot of its card. */
+.settings .reading-source-note {
+  margin: 0 -18px; padding: 10px 18px 12px; border-radius: 0 0 11px 11px;
+  background: color-mix(in srgb, var(--pane-2) 60%, transparent); font-size: 12.5px; line-height: 1.45;
+}
+
+/* Per conversation: its title with the count, and "Add a conversation" across from it. */
+.reading-chats-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 22px 2px 8px; }
+.reading-chats-head .set-group-title { margin: 0 0 4px; }
+.reading-count {
+  display: inline-block; min-width: 20px; margin-left: 8px; padding: 1px 7px; border-radius: 10px; text-align: center;
+  font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); background: var(--pane-2);
+}
+.settings .text-btn.reading-add {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 10px; color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+@media (hover: hover) { .settings .text-btn.reading-add:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 9%, var(--pane)); } }
+.reading-add:focus-visible, .reading-chat-link:focus-visible, .reading-seg button:focus-visible, .reading-chat-remove:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.reading-empty { padding: 18px 0 16px; }
+.settings .reading-empty-title { margin: 0 0 2px; font-weight: 600; }
+.settings .reading-empty-line { margin: 0; padding: 14px 0; }
+.reading-filter { padding: 12px 0 6px; }
+.reading-filter input {
+  width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 18px; padding: 7px 14px;
+  font: inherit; font-size: 16px; background: var(--bg); color: var(--text);
+}
+.reading-filter input:focus { outline: none; border-color: var(--accent); }
+
+/* A conversation: avatar, name and what it is on, the segmented control, ×. */
+.reading-chat {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto 40px; grid-template-areas: 'av name seg x';
+  align-items: center; gap: 0 12px; padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.reading-chat-avatar { grid-area: av; display: flex; }
+.reading-chat-blank { width: 36px; height: 36px; border-radius: 50%; background: var(--line); }
+.reading-chat-name { grid-area: name; display: flex; flex-direction: column; min-width: 0; }
+.reading-chat-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reading-chat-name .set-label { margin: 0; }
+.reading-chat-link { color: var(--text); text-decoration: none; border-radius: 4px; }
+@media (hover: hover) { .reading-chat-link:hover { text-decoration: underline; text-underline-offset: 3px; } }
+.reading-seg { grid-area: seg; display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--pane-2); }
+.reading-seg button {
+  min-width: 84px; min-height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent;
+  font: inherit; font-size: 14px; color: var(--muted); cursor: pointer;
+}
+.reading-seg button[aria-checked='true'] { background: var(--pane); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+.reading-seg button[data-testid='reading-chat-discreet'][aria-checked='true'] { background: var(--accent); color: var(--accent-ink); }
+@media (hover: hover) { .reading-seg button[aria-checked='false']:hover:not(:disabled) { color: var(--text); } }
+.reading-seg button:disabled { cursor: default; }
+.reading-seg button:disabled[aria-checked='false'] { opacity: 0.5; }
+.reading-chat-remove { grid-area: x; width: 40px; height: 40px; }
+.reading-chat-remove:disabled { opacity: 0.45; cursor: default; }
+/* The last action of the card: put every conversation back, confirmed in place. */
+.reading-reset { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 10px 0 12px; }
+.reading-reset .settings-actions { justify-content: flex-start; }
+.settings .reading-reset-btn { border-color: transparent; background: transparent; padding-left: 0; }
+@media (hover: hover) { .settings .reading-reset-btn:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; } }
+
+@media (pointer: coarse) {
+  .reading-seg button { min-height: 38px; }
+  .reading-chat { grid-template-columns: 36px minmax(0, 1fr) auto 44px; }
+  .reading-chat-remove { width: 44px; height: 44px; }
+}
+
+/* A narrow page (a phone): the switch stays beside its account; a conversation's control goes under its name. */
+@container (max-width: 560px) {
+  .set-row.reading-account { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 0 12px; padding: 14px 0; }
+  .reading-account .set-control { justify-self: end; align-items: center; }
+  .settings .reading-source-note { margin: 0 -14px; padding: 10px 14px 12px; }
+  .reading-chat { grid-template-areas: 'av name x' '. seg seg'; grid-template-columns: 36px minmax(0, 1fr) 44px; row-gap: 6px; }
+  .reading-seg { justify-self: start; }
+  .reading-chats-head { align-items: center; }
+  /* A phone: every target a finger's reach, whatever the pointer says. */
+  .settings .text-btn.reading-add, .settings .reading-reset .text-btn { min-height: 44px; }
+  .reading-seg button { min-height: 38px; }
+  .reading-chat-remove { width: 44px; height: 44px; }
+}
+@container (max-width: 380px) {
+  .reading-chats-head { flex-wrap: wrap; }
+}
+
+/* The picker (Add a conversation): the forward picker's frame (styles.css .newchat, .forward-panel), its hint under
+   the title. */
+.msg-menu.newchat.reading-picker.centered { position: fixed; left: 50%; top: 8vh; transform: translateX(-50%); max-height: 80vh; width: 420px; }
+.reading-picker-hint { flex: none; margin: 2px 6px 4px; }

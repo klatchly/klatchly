@@ -1,0 +1,43 @@
+# Dependency updates (audit H3), as pull requests that the CI checks (tier 1 + npm audit): web/ npm packages, the
+# Docker base images (pinned by tag and digest: both are updated), the GitHub Actions of the workflows (pinned by
+# commit). Weekly, minor and patch updates grouped; a security update comes at once whatever the schedule (when
+# Dependabot security updates are on in the repository settings).
+# Not covered, update by hand: the Playwright image of web/test/e2e/run-offline.sh and its client (the same version,
+# web/test/e2e/package.json has no lockfile), the node:24 image named in docs/tests.md (keep it on the Dockerfile's).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: deps
+
+  - package-ecosystem: docker
+    directories: [/web, /server]
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    ignore:
+      # Node stays on 24 (engines, the distroless nodejs24 runtime): a new major is a decision, not an update.
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+    commit-message:
+      prefix: deps
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci

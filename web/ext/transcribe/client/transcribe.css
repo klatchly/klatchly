@@ -1,0 +1,73 @@
+/* Under a voice note (Messages.tsx): the Transcribe button, then the transcript, as a quiet block under the
+   bubble's content. 44 px touch targets on a touch screen. Text in --text where it must be read (the button, an
+   error): --muted on a sent bubble's tint is under 4.5:1. */
+.transcribe-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 3px 10px 3px 8px; min-height: 30px;
+  border: 1px solid var(--line); border-radius: 15px; background: transparent; color: var(--text);
+  font: inherit; font-size: 12.5px; cursor: pointer;
+}
+.transcribe-btn:focus-visible, .transcribe-close:focus-visible, .transcribe-note:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.transcribe-note:focus:not(:focus-visible) { outline: none; }
+@media (hover: hover) { .transcribe-btn:hover { border-color: var(--muted); } }
+/* One stable box per sound (focus and the live region stay in place as the button gives way to the note). */
+.transcribe-slot { position: relative; }
+/* Spoken, not shown: the live region of a note's progress, the button's privacy line. */
+.transcribe-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.transcribe-note { margin-top: 6px; padding: 5px 8px 6px; border-left: 3px solid var(--accent); border-radius: 6px; background: color-mix(in srgb, var(--text) 5%, transparent); max-width: 100%; }
+.transcribe-note.error { border-left-color: var(--danger); }
+.transcribe-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.transcribe-close { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 12px; line-height: 1; }
+@media (hover: hover) { .transcribe-close:hover { color: var(--text); } }
+.transcribe-text { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 2px; }
+.transcribe-muted { color: var(--muted); font-style: italic; }
+.transcribe-error { color: var(--text); }
+.msg.own .transcribe-muted, .msg.own .transcribe-head { color: color-mix(in srgb, var(--text) 75%, var(--own)); }
+.transcribe-retry { font: inherit; font-style: normal; }
+@media (pointer: coarse) {
+  .transcribe-btn { min-height: 44px; padding: 6px 14px 6px 12px; font-size: 14px; border-radius: 22px; }
+  /* The ✕ a full 44 px target within the head, never over the transcript's first line. */
+  .transcribe-head { min-height: 44px; }
+  .transcribe-close { min-width: 44px; min-height: 44px; margin-right: -8px; }
+  .transcribe-retry { min-height: 44px; }
+}
+
+/* Settings → Transcription (Settings.tsx): a card of the core's Settings rows per provider, under its name. */
+.transcribe-page { margin: 0; }
+.transcribe-group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.transcribe-legend {
+  float: left; width: 100%; padding: 22px 2px 8px; font-size: 13px; font-weight: 600; line-height: 1.3;
+  color: var(--muted); overflow-wrap: anywhere;
+}
+.transcribe-legend + * { clear: both; }
+.transcribe-group > .set-group { margin-bottom: 0; }
+.transcribe-label { display: block; }
+.transcribe-tag { display: inline-block; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; font-weight: 500; color: var(--muted); vertical-align: 1px; }
+.settings .transcribe-status { margin: 0; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.transcribe-url { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.transcribe-bad { color: var(--danger); }
+.settings .transcribe-sbtn { flex: none; min-height: 36px; padding: 4px 12px; font-size: 13.5px; }
+.transcribe-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.set-control.transcribe-actions, .set-control.transcribe-pick { flex-direction: row; align-items: center; justify-content: flex-end; }
+.transcribe-add { justify-content: flex-start; padding: 16px 0 4px; }
+.transcribe-pick select, .transcribe-field select {
+  width: min(280px, 100%); min-width: 0; font: inherit; font-size: 16px; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); text-overflow: ellipsis;
+}
+.transcribe-form { display: flex; flex-direction: column; gap: 10px; padding: 14px 0 16px; border-bottom: 1px solid var(--line); }
+.transcribe-field { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; font-weight: 600; }
+.transcribe-field select { width: 100%; }
+.transcribe-input {
+  width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--pane); color: var(--text); font: inherit; font-size: 16px; font-weight: 400;
+}
+.transcribe-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.transcribe-form .settings-hint { margin: 0; font-size: 12.5px; font-weight: 400; }
+.transcribe-form .transcribe-actions { justify-content: flex-start; }
+@media (pointer: coarse) {
+  .settings .transcribe-sbtn { min-height: 44px; }
+}
+@container (max-width: 560px) {
+  .set-control.transcribe-pick { flex-wrap: wrap; }
+  .transcribe-pick select { flex: 1 1 100%; width: 100%; }
+  .transcribe-actions, .set-control.transcribe-actions { justify-content: flex-start; }
+}

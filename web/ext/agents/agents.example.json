@@ -1,0 +1,54 @@
+{
+  "//": "Agents manifest (KLATCHLY_AGENTS_FILE), schema version 1. Keys that start with // are comments. Reference: docs/self-hosting.md, section Agents manifest, and ext/agents/server/manifest.ts.",
+  "version": 1,
+  "// owner": "Optional: on whose behalf an agent writes in a chat (else KLATCHLY_AGENTS_OWNER_NAME, else the user's name in that chat).",
+  "owner": "Alex",
+  "// chatDefault": "Optional: the agent first offered in a chat's Agent panel (else the first declared limited).",
+  "chatDefault": "chat",
+  "agents": [
+    {
+      "// id": "Hermes' own profile (key file hermes_key). Always in the Agents space.",
+      "id": "default",
+      "runtime": "hermes",
+      "label": "Main agent",
+      "color": "#7a52c7",
+      "description": { "en": "General agent with all its tools", "fr": "Agent généraliste, avec tous ses outils" },
+      "offer": ["space", "chat"],
+      "helpers": ["assistant"],
+      "// access": "What the host declares: limited | extended | full. Absent: treated as full, with a warning that nothing was declared.",
+      "access": "full",
+      "accessNote": { "en": "files, code, browser, connections…", "fr": "fichiers, code, navigateur, connexions…" },
+      "// disclosure": "Where a chat's messages go when it is called (the privacy line).",
+      "disclosure": { "en": "Hermes on this server, then the model provider", "fr": "Hermes sur ce serveur, puis le fournisseur du modèle" }
+    },
+    {
+      "// id": "A named Hermes profile: key file hermes_key_assistant beside hermes_key; an inbox also needs hermes_inbound_key_assistant.",
+      "id": "assistant",
+      "label": "Assistant",
+      "color": "#2f8a7a",
+      "description": { "en": "Mail triage, summaries, drafts (never sends)", "fr": "Tri des mails, résumés, brouillons (aucun envoi)" },
+      "offer": ["space", "chat"],
+      "inbox": "Mail recaps",
+      "access": "extended",
+      "accessNote": { "en": "mail, connections, memory…", "fr": "mails, connexions, mémoire…" },
+      "disclosure": { "en": "Hermes on this server, then the model provider", "fr": "Hermes sur ce serveur, puis le fournisseur du modèle" }
+    },
+    {
+      "id": "chat",
+      "label": "Agent",
+      "description": { "en": "Short answers in a chat", "fr": "Réponses courtes dans une discussion" },
+      "offer": ["chat"],
+      "access": "limited",
+      "accessNote": { "en": "web search only, no memory", "fr": "recherche web seulement, sans mémoire" },
+      "disclosure": { "en": "Hermes on this server, then the model provider", "fr": "Hermes sur ce serveur, puis le fournisseur du modèle" }
+    },
+    {
+      "// runtime": "llm: answers from a model of the llm package (chosen in Settings, Default models), no tools, chats only; its access is limited for sure and its privacy line names the model's provider. Agents like this one can also be made in Settings, Agents (LLM), without this file.",
+      "id": "helpdesk",
+      "runtime": "llm",
+      "label": "Helpdesk",
+      "description": { "en": "Polite, short answers", "fr": "Réponses courtes et polies" },
+      "instructions": "You answer customers politely, in two sentences at most. Never promise a refund or a date."
+    }
+  ]
+}
