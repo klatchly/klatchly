@@ -19,7 +19,7 @@ updates:
       # @types/node follows the Node major the app runs on (24, engines and the distroless runtime).
       - dependency-name: '@types/node'
         update-types: [version-update:semver-major]
-    # Conventional Commits (CONTRIBUTING.md): "build(deps): bump …".
+    # Conventional Commits (docs/commits.md): "build(deps): bump …".
     commit-message:
       prefix: build
       include: scope

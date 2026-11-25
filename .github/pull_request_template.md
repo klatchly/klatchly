@@ -1,3 +1,5 @@
+> **Pull requests are not accepted yet**, see [CONTRIBUTING.md](https://github.com/klatchly/klatchly/blob/main/CONTRIBUTING.md).
+
 <!-- Title: Conventional Commits, in English, e.g. "feat(beeper): join a Matrix room". -->
 
 ## Summary

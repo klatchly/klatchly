@@ -2,6 +2,13 @@
 
 **Unofficial self-hosted web client for Beeper and more**
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/16-dark-inbox.png">
+    <img src="docs/screenshots/01-inbox.png" alt="Klatchly: chats from several networks in one list, and a group conversation with a photo, reactions, a reply and a voice note">
+  </picture>
+</p>
+
 > **Unofficial project.** Klatchly is an independent, community-made web client for
 > [Beeper](https://www.beeper.com). It is not affiliated with, endorsed by, or supported by
 > Beeper or Automattic Inc.
@@ -35,6 +42,36 @@ It is a single-user app: one Beeper account, one owner, any number of the owner'
 - **Languages**: English and French interface; translations are typed catalogs (one file per language).
 - **Extensions**: features come as packages built into the image (see below): a connected-accounts dashboard,
   writing help and translation on any OpenAI-compatible model provider you configure, and your own packages.
+
+<table>
+  <tr>
+    <td width="50%"><a href="docs/screenshots/04-writing-correction.png"><img src="docs/screenshots/04-writing-correction.png" alt="A draft corrected by writing help"></a><br><sub><b>Writing help</b>: fix or translate a draft in the chat's language and tone.</sub></td>
+    <td width="50%"><a href="docs/screenshots/05-translate-message.png"><img src="docs/screenshots/05-translate-message.png" alt="Received messages translated"></a><br><sub><b>Translation</b> of received messages, in place.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="docs/screenshots/07-transcribe.png"><img src="docs/screenshots/07-transcribe.png" alt="A voice note and its transcript"></a><br><sub><b>Voice notes</b> to text, on demand.</sub></td>
+    <td width="50%"><a href="docs/screenshots/08a-agent-draft.png"><img src="docs/screenshots/08a-agent-draft.png" alt="An agent's draft in a chat, to drop, edit or send"></a><br><sub><b>Agents</b> in a chat: they propose, you decide what is sent.</sub></td>
+  </tr>
+</table>
+
+<details>
+<summary><b>More screenshots</b></summary>
+<br>
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/13-phone-chats.png" alt="Chat list on a phone"><br><sub>Phone: chat list</sub></td>
+    <td width="33%"><img src="docs/screenshots/14-phone-conversation.png" alt="Conversation on a phone"><br><sub>Phone: conversation</sub></td>
+    <td width="33%"><img src="docs/screenshots/15-phone-new-chat.png" alt="New chat on a phone, with Join a Matrix room"><br><sub>Phone: new chat and Matrix rooms</sub></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/02-networks-filter.png" alt="Filter by network"><br><sub>Filter by network</sub></td>
+    <td width="33%"><img src="docs/screenshots/11-new-chat-matrix.png" alt="Join a Matrix room"><br><sub>Join a Matrix room</sub></td>
+    <td width="33%"><img src="docs/screenshots/17-dark-writing-correction.png" alt="Writing help in the dark theme"><br><sub>Dark theme</sub></td>
+  </tr>
+</table>
+
+All screenshots, with captions: [docs/screenshots](docs/screenshots/README.md).
+</details>
 
 ## Requirements
 
@@ -118,6 +155,10 @@ Extensions, but they are not a sandbox. Only build in packages whose code you ha
 - Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
 ## Development
+
+Klatchly is developed with heavy use of AI coding assistants. Every change still goes through the same gates: typechecking,
+the unit and offline end-to-end tests, multi-reviewer passes on larger features, and the privacy and secret scans of the
+public export. Bugs are ours either way, so please report them.
 
 ```sh
 cd web

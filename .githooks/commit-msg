@@ -1,5 +1,5 @@
 #!/bin/sh
-# Commit messages follow Conventional Commits 1.0.0, in English (CONTRIBUTING.md, "Commit messages and pull requests").
+# Commit messages follow Conventional Commits 1.0.0, in English (docs/commits.md).
 # Enable once per clone: git config core.hooksPath .githooks
 subject=$(grep -v '^#' "$1" | head -n 1)
 case "$subject" in
