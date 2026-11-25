@@ -3,7 +3,15 @@ import type { Message } from './types';
 import { toPlainText } from '../../server/richtext';
 
 /** Text compared loosely: the echo is rich text (HTML) rendered from our Markdown. */
-export const looseText = (s: string | undefined) => toPlainText(s ?? '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
+// Markdown structure dropped on both sides too: quote marks, list markers, a link's URL (the echo shows its text).
+export const looseText = (s: string | undefined) =>
+  toPlainText(s ?? '')
+    .replace(/^[ \t]*>[ \t]?/gm, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^[ \t]*(?:\d+[.)]|[-*+•])[ \t]+/gm, '')
+    .replace(/[*_~`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export interface OutgoingAttachment {
   name: string;

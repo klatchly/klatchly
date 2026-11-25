@@ -36,6 +36,9 @@ It is a single-user app: one Beeper account, one owner, any number of the owner'
 - **Messaging**: text with mentions and drafts, replies, reactions, edit and delete your own messages, photos,
   videos, files and voice messages, albums, forward to several chats, discreet reading (read without sending a
   receipt where the network allows it).
+- **Formatting**: bold, italic, strikethrough, code, quotes, links and lists from shortcuts (Ctrl/⌘+B, I…) or a
+  formatting bar, limited to what the chat's network displays; rich text pasted from documents or web pages keeps its
+  formatting, and a live preview in the field on desktop.
 - **Media**: full-screen viewer, a per-chat gallery of media, files and links, server-side thumbnails.
 - **Installable**: a Progressive Web App that behaves like a native app on iPhone and Android home screens, and on
   desktop.

@@ -15,6 +15,8 @@ import type { ComposerApi, ComposerNetwork, ComposerSlots, RewriteNote } from '.
 import type { ModuleInfo } from '../../server/extension';
 import { useDismiss } from './dismiss';
 import { Lazy } from './lazy';
+import { FormatBar, FormatHelp, MarkdownPreview, previewOn, useFormatter } from './formatting';
+import { showsAny } from './textformat';
 
 const PREVIEWABLE = /^image\/(jpeg|png|gif|webp|avif)$/;
 const MAX_TRAY = 10;
@@ -327,7 +329,20 @@ export function Composer({
   const [tools, setTools] = useState(false);
   const toolsBtn = useRef<HTMLButtonElement>(null);
   const attachBtn = useRef<HTMLButtonElement>(null);
+  const formatBtn = useRef<HTMLButtonElement>(null);
   useEffect(() => setTools(false), [text]);
+  // --- Formatting (formatting.tsx): shortcuts, pastes, lists; the bar over a selection or opened with Aa ----------
+  const fmt = useFormatter(ref, network, (m) => onError?.(m));
+  const [hasSel, setHasSel] = useState(false);
+  const [barOpen, setBarOpen] = useState(false);
+  const trackSel = useCallback(() => {
+    const el = ref.current;
+    setHasSel(!!el && document.activeElement === el && el.selectionStart !== el.selectionEnd);
+  }, []);
+  useEffect(() => {
+    document.addEventListener('selectionchange', trackSel);
+    return () => document.removeEventListener('selectionchange', trackSel);
+  }, [trackSel]);
   // Long press on 📎 (touch): straight to the camera. Opened on pointerup, which still counts as a user gesture.
   const press = useRef({ at: 0, camera: false });
   const attachHandlers = {
@@ -537,6 +552,11 @@ export function Composer({
         return;
       }
     }
+    if (fmt.onKeyDown(e, { enterSends: finePointer() })) return;
+    if (e.key === 'Escape' && barOpen) {
+      setBarOpen(false);
+      return;
+    }
     // The ✨ menu keeps the focus in the field: Escape closes the menu first.
     if (e.key === 'Escape' && aiMenu) {
       setAiMenu(false);
@@ -570,7 +590,11 @@ export function Composer({
 
   const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const files = [...e.clipboardData.files];
-    if (!files.length || disabled) return;
+    if (disabled) return;
+    if (!files.length) {
+      fmt.onPaste(e);
+      return;
+    }
     e.preventDefault();
     tray.add(files);
   };
@@ -711,6 +735,9 @@ export function Composer({
   }, [toolsKey, toolsIn]);
   const showAssist = augs.length > 0 && toolsIn && !!draftKey && !disabled;
   const showMic = !!voiceType && !disabled && !text.trim() && !ready && !uploading;
+  const preview = previewOn(network?.formatting) && !disabled;
+  const plainNet = network && !showsAny(network.formatting);
+  const docked = !disabled && !aiBusy && (barOpen || (touch && hasSel));
 
   return (
     <form
@@ -724,6 +751,8 @@ export function Composer({
       {top}
       <TrayView tray={tray} />
       {matches.length > 0 && <MentionPicker items={matches} active={active} onPick={pickMention} />}
+      {docked && <FormatBar field={ref} fmt={fmt} network={network} docked onClose={barOpen ? () => setBarOpen(false) : undefined} />}
+      {fmt.help && <FormatHelp fmt={fmt} network={network} />}
       <div className={`composer-row${hasText ? ' typing' : ''}${tools ? ' tools' : ''}${touch ? ' touch' : ''}`}>
         {rec.phase !== 'idle' && <VoiceBar st={rec} onCancel={() => void finish(false)} onSend={() => void finish(true)} />}
         {!noFiles && (
@@ -776,11 +805,34 @@ export function Composer({
             </svg>
           </button>
         )}
+        <button
+          ref={formatBtn}
+          type="button"
+          className={`icon-btn attach-btn format-btn${barOpen ? ' on' : ''}${plainNet ? ' plain' : ''}`}
+          aria-label={t.format.button}
+          title={plainNet ? t.format.none(network.name) : t.format.button}
+          aria-pressed={barOpen}
+          data-testid="format-toggle"
+          disabled={disabled}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            setTools(false);
+            setBarOpen((v) => !v);
+            ref.current?.focus();
+          }}
+        >
+          <span aria-hidden="true" className="format-aa">
+            A<small>a</small>
+          </span>
+        </button>
         <input ref={fileRef} type="file" multiple hidden data-testid="file-input" onChange={(e) => pick(e.currentTarget)} />
         <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" hidden onChange={(e) => pick(e.currentTarget)} />
         <div className={`field-wrap${showAssist ? ' with-assist' : ''}`}>
+          {preview && <MarkdownPreview field={ref} text={text} formatting={network?.formatting} />}
+          {hasSel && !touch && !barOpen && !disabled && !aiBusy && <FormatBar field={ref} fmt={fmt} network={network} docked={false} />}
           <textarea
             ref={ref}
+            className={preview ? 'previewing' : undefined}
             rows={1}
             value={text}
             disabled={disabled}
@@ -796,9 +848,15 @@ export function Composer({
               setText(e.target.value);
               updateQuery(e.target.value, e.target.selectionStart ?? e.target.value.length);
             }}
-            onSelect={(e) => updateQuery(e.currentTarget.value, e.currentTarget.selectionStart ?? 0)}
+            onSelect={(e) => {
+              updateQuery(e.currentTarget.value, e.currentTarget.selectionStart ?? 0);
+              trackSel();
+            }}
             onFocus={() => setTools(false)}
-            onBlur={() => window.setTimeout(() => setQuery(null), 150)}
+            onBlur={() => {
+              setHasSel(false);
+              window.setTimeout(() => setQuery(null), 150);
+            }}
             onKeyDown={onKeyDown}
             onPaste={onPaste}
           />

@@ -94,7 +94,7 @@ async function phoneRun(s, width, scheme) {
     check(await noHScroll(page), `${tag} no horizontal scroll (typing)`);
     await shot(page, `composer-${tag}-typing`);
 
-    // Chevron: 📎 and 📷 back in place of quick, focus stays in the field.
+    // Chevron: 📎 and 📷 back in place of quick, focus stays in the field (no Aa on phones: a selection brings the bar).
     await chev.tap();
     await page.waitForTimeout(150);
     const tools = (await rowOrder(page)).join(' ');
@@ -163,12 +163,12 @@ async function phoneRun(s, width, scheme) {
       await page.waitForSelector('.composer [data-testid=assist-btn]');
       await input.fill('');
       const empty = (await rowOrder(page)).join(' ');
-      check(empty === 'attach composer-input assist-btn assist-quick-btn mic', `desktop-${scheme} empty row: ${empty}`);
+      check(empty === 'attach format-toggle composer-input assist-btn assist-quick-btn mic', `desktop-${scheme} empty row: ${empty}`);
       check(await page.isDisabled('[data-testid=assist-quick-btn]'), `desktop-${scheme} quick greyed out while empty`);
       await shot(page, `composer-desktop-${scheme}-empty`);
       await input.fill(DRAFT);
       const typing = (await rowOrder(page)).join(' ');
-      check(typing === 'attach composer-input assist-btn assist-quick-btn send', `desktop-${scheme} typing row: ${typing}`);
+      check(typing === 'attach format-toggle composer-input assist-btn assist-quick-btn send', `desktop-${scheme} typing row: ${typing}`);
       await shot(page, `composer-desktop-${scheme}-typing`);
       await input.fill('');
     }

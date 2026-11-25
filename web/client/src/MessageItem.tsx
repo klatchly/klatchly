@@ -15,6 +15,8 @@ import { linkify, RichText } from './richtext';
 import { LinkPreviews } from './LinkPreview';
 import { VoicePlayer } from './VoicePlayer';
 import { isHtmlBody, toPlainText } from '../../server/richtext';
+import { FormatHelp, useFormatter } from './formatting';
+import { htmlToMarkdown } from './textformat';
 import { parseCallEvent } from '../../server/callevent';
 import { isKindCard } from '../../server/msgkind';
 import { CallCard } from './CallCard';
@@ -542,8 +544,10 @@ function fitEditor(el: HTMLTextAreaElement) {
 function InlineEditor({ m }: { m: Message }) {
   const conv = useConv();
   const t = useT();
-  // Rich (HTML) bodies are edited as their plain text; the server converts Markdown back.
-  const [initial] = useState(() => toPlainText(m.text));
+  // Rich (HTML) bodies are edited as the Markdown that gives them (what the network displays of it), which the
+  // server converts back: the formatting survives an edit.
+  const network = chatNetwork(conv.chat);
+  const [initial] = useState(() => (isHtmlBody(m.text) ? htmlToMarkdown(m.text!, network?.formatting, { edit: true }) : toPlainText(m.text)));
   const [text, setText] = useState(initial);
   const ref = useRef<HTMLTextAreaElement>(null);
   const max = Math.min(20_000, conv.chat?.capabilities?.maxTextLength ?? 20_000);
@@ -557,6 +561,7 @@ function InlineEditor({ m }: { m: Message }) {
   const [undo, setUndo] = useState<{ before: string; result: string; note: RewriteNote } | null>(null);
   const live = useRef(text);
   live.current = text;
+  const fmt = useFormatter(ref, network, setAiError);
   const setField = (s: string) => {
     setText(s);
     if (ref.current) requestAnimationFrame(() => ref.current && fitEditor(ref.current));
@@ -565,7 +570,7 @@ function InlineEditor({ m }: { m: Message }) {
     chatID: conv.chatID,
     text: text.trim(),
     mentions: [],
-    network: chatNetwork(conv.chat),
+    network,
     busy: working !== null,
     async rewrite(work, label, done) {
       if (working !== null) return;
@@ -622,7 +627,9 @@ function InlineEditor({ m }: { m: Message }) {
           setText(e.target.value);
           fitEditor(e.target);
         }}
+        onPaste={fmt.onPaste}
         onKeyDown={(e) => {
+          if (fmt.onKeyDown(e, { enterSends: window.matchMedia('(pointer: fine)').matches })) return;
           if (e.key === 'Escape') conv.cancelEdit();
           else if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && window.matchMedia('(pointer: fine)').matches) {
             e.preventDefault();
@@ -630,6 +637,7 @@ function InlineEditor({ m }: { m: Message }) {
           }
         }}
       />
+      {fmt.help && <FormatHelp fmt={fmt} network={network} />}
       {working !== null && <div className="assist-bar" data-testid="inline-edit-working">{working}</div>}
       {aiError && working === null && (
         <div className="assist-bar" role="alert" data-testid="inline-edit-ai-error">
