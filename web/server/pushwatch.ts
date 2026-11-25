@@ -5,6 +5,7 @@ import { messages } from './i18n.js';
 import { kindLine } from './msgkind.js';
 import { oneLine } from './richtext.js';
 import { parseCallEvent } from './callevent.js';
+import { membershipOf } from './membership.js';
 import { isRawUserID, senderLabel } from './names.js';
 import { emitChatEvent } from './chatactor.js';
 import { badgeCount, dropUnread, noteChat, reseedUnread } from './badgecount.js';
@@ -74,6 +75,8 @@ export function isNotifiable(m: Msg, now = Date.now()): boolean {
   if (typeof m.id !== 'string' || typeof m.chatID !== 'string') return false;
   if (m.isSender === true || m.isHidden === true || m.isDeleted === true || m.editedTimestamp) return false;
   if (m.type === 'REACTION' || m.type === 'NOTICE') return false;
+  // An arrival or a departure in a group (membership.ts): never worth a notification.
+  if (membershipOf(m)) return false;
   const ts = typeof m.timestamp === 'string' ? Date.parse(m.timestamp) : NaN;
   return Number.isFinite(ts) && now - ts < FRESH_MS && ts - now < FRESH_MS;
 }

@@ -22,6 +22,8 @@ import { Avatar } from './Avatar';
 import { NetworkBadge, networkName } from './networks';
 import { MessageItem, QuoteThumb, quoteText, rowKey, rowMsgs, type Row } from './MessageItem';
 import { groupAlbums, isAlbum } from './albums';
+import { membershipOf, membershipRuns } from '../../server/membership';
+import { membershipMode, useChatEvents } from './chatevents';
 import { deliveryReceipts, readReceipts } from './receipts';
 import type { LightboxItem } from './Lightbox';
 import { Lazy, lazyChunk } from './lazy';
@@ -105,6 +107,15 @@ const albumRowFor = (ms: Message[]): Row => {
   if (r && r.ms.length === ms.length && r.ms.every((m, i) => m === ms[i])) return r;
   const n = { kind: 'album' as const, ms };
   albumRows.set(ms[0]!, n);
+  return n;
+};
+// Arrivals and departures (server/membership.ts): the same row object while its messages are the same objects.
+const memberRows = new WeakMap<Message, Row & { kind: 'members' }>();
+const memberRowFor = (ms: Message[]): Row => {
+  const r = memberRows.get(ms[0]!);
+  if (r && r.ms.length === ms.length && r.ms.every((m, i) => m === ms[i])) return r;
+  const n = { kind: 'members' as const, ms };
+  memberRows.set(ms[0]!, n);
   return n;
 };
 const outRowFor = (o: Outgoing): Row => {
@@ -347,13 +358,18 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
   // Older pages until the first unread message is loaded (the list waits for it, to open at the right place).
   const needUnread =
     divider.current === undefined && unreadOpen > 0 && msgQ.isSuccess && !!msgQ.hasNextPage && pageCount < MAX_FILL_PAGES && firstUnreadIndex(incoming, unreadOpen) < 0;
+  // Arrivals and departures hidden in this group take no row: they do not count towards filling the screen.
+  const memMode = membershipMode(useChatEvents().data, chatID);
+  const groupChat = chat?.type === 'group';
+  const hiddenCount = useMemo(() => (groupChat && memMode === 'hide' ? flat.filter((r) => r.kind === 'msg' && !!membershipOf(r.m)).length : 0), [flat, groupChat, memMode]);
+  const shownCount = flat.length - hiddenCount;
   const needMore =
-    msgQ.isSuccess && !!msgQ.hasNextPage && (flat.length - pending.length < MIN_ROWS || needUnread) && pageCount < MAX_FILL_PAGES;
+    msgQ.isSuccess && !!msgQ.hasNextPage && (shownCount - pending.length < MIN_ROWS || needUnread) && pageCount < MAX_FILL_PAGES;
   useEffect(() => {
     if (needMore && !msgQ.isFetchingNextPage) void msgQ.fetchNextPage();
   }, [needMore, msgQ]);
   // Decided once, when the list first shows: later messages (or mark-read) do not move it.
-  if (divider.current === undefined && msgQ.isSuccess && !needUnread && (!needMore || flat.length >= MIN_ROWS)) {
+  if (divider.current === undefined && msgQ.isSuccess && !needUnread && (!needMore || shownCount >= MIN_ROWS)) {
     let index = firstUnreadIndex(incoming, unreadOpen);
     if (index < 0 && unreadOpen > 0) index = oldestIncoming(incoming);
     const r = index >= 0 ? flat[index] : undefined;
@@ -361,14 +377,22 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
   }
   const dividerID = divider.current?.id;
 
-  // Rows of the list: photo albums grouped (albums.ts; the divider starts a new one).
-  const rows = useMemo(() => {
+  // Rows of the list: photo albums grouped (albums.ts; the divider starts a new one); in groups, arrivals and
+  // departures as the chosen mode draws them (server/membership.ts membershipRuns).
+  const { rows, dividerRow } = useMemo(() => {
     const msgs = flat.flatMap((r) => (r.kind === 'msg' ? [r.m] : []));
     const rows: Row[] = [];
-    for (const run of groupAlbums(msgs, dividerID)) rows.push(isAlbum(run) ? albumRowFor(run) : rowFor(run[0]!));
+    const { runs, divider } = membershipRuns(msgs, dividerID, groupChat ? memMode : undefined);
+    for (const part of runs) {
+      if (!Array.isArray(part)) rows.push(memberRowFor(part.members));
+      else for (const run of groupAlbums(part, divider)) rows.push(isAlbum(run) ? albumRowFor(run) : rowFor(run[0]!));
+    }
     for (const r of flat) if (r.kind === 'out') rows.push(r);
-    return rows;
-  }, [flat, dividerID]);
+    return { rows, dividerRow: divider };
+  }, [flat, dividerID, groupChat, memMode]);
+  // The divider's row (none when every unread message is a hidden event): opening there only when it has one.
+  const dividerIndex = dividerRow ? rows.findIndex((r) => rowKey(r) === dividerRow) : -1;
+  const openAtDiv = !!divider.current?.atOpen && dividerIndex >= 0;
   // Virtuoso's firstItemIndex moves by the rows really added above those it lists, found by following its top row
   // (rowshift.ts): a page prepended that extends the top album adds no row. Not by which page a message is in:
   // live messages grow the newest page (cache.ts upsertMessages), and the refetch that follows hands its oldest
@@ -407,7 +431,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
   const stickDecided = useRef(false);
   if (!stickDecided.current && divider.current !== undefined) {
     stickDecided.current = true;
-    if (divider.current?.atOpen) stick.current = false;
+    if (openAtDiv) stick.current = false;
   }
   const lastTop = useRef(0);
   const [atBottom, setAtBottom] = useState(true);
@@ -674,7 +698,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
   };
   // Opening at the unread divider, the rows are measured once placed, not while it places itself: Virtuoso, drawing
   // every row while it scrolls to the divider, no longer ends there.
-  const atDivider = !!divider.current?.atOpen;
+  const atDivider = openAtDiv;
   if (placed !== placedBefore.current) {
     placedBefore.current = placed;
     if (IOS_WEBKIT && placed && atDivider) measureAll();
@@ -1064,7 +1088,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
     const list = rowsRef.current;
     for (let i = list.length - 1; i >= 0; i--) {
       const r = list[i]!;
-      if (r.kind === 'out') continue;
+      if (r.kind === 'out' || r.kind === 'members') continue;
       const m = rowMsgs(r).findLast((x) => x.isSender && canEdit(rowChat, x));
       if (!m) continue;
       startEdit(m);
@@ -1234,7 +1258,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
       if (i < 0) return null;
     }
     const row = rows[i]!;
-    const unread = divider.current && row.kind !== 'out' && rowKey(row) === divider.current.id ? unreadOpen : undefined;
+    const unread = divider.current && row.kind !== 'out' && rowKey(row) === dividerRow ? unreadOpen : undefined;
     // Albums: the receipts of their last message (read up to it = read up to the whole album).
     const ms = rowMsgs(row);
     const lastID = ms[ms.length - 1]?.id;
@@ -1336,7 +1360,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
             data={rows}
             firstItemIndex={firstItemIndex}
             initialTopMostItemIndex={
-              divider.current?.atOpen ? { index: Math.max(0, rows.findIndex((r) => rowKey(r) === dividerID)), align: 'start', offset: -8 } : { index: 'LAST', align: 'end' }
+              openAtDiv ? { index: dividerIndex, align: 'start', offset: -8 } : { index: 'LAST', align: 'end' }
             }
             computeItemKey={(_, r) => rowKey(r)}
             startReached={() => {
@@ -1381,7 +1405,7 @@ export function Conversation({ chatID, focus, compose, sub }: { chatID: string; 
         {loaded && !placed && (
           <div ref={placing} className="list-placing">
             {rows.length > 0 ? (
-              <ListPreview count={rows.length} from={divider.current?.atOpen ? rows.findIndex((r) => rowKey(r) === dividerID) : undefined} rowKey={(i) => rowKey(rows[i]!)} renderRow={renderRow} header={<ListHeader context={{ fetching: false, hasMore: msgQ.hasNextPage }} />} />
+              <ListPreview count={rows.length} from={openAtDiv ? dividerIndex : undefined} rowKey={(i) => rowKey(rows[i]!)} renderRow={renderRow} header={<ListHeader context={{ fetching: false, hasMore: msgQ.hasNextPage }} />} />
             ) : (
               <MessagesSkeleton />
             )}

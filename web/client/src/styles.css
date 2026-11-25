@@ -1311,3 +1311,12 @@ dialog.format-help::backdrop { background: rgb(0 0 0 / 0.4); }
 .fmt-off { font-size: 12.5px; }
 .fmt-tip { color: var(--muted); font-size: 13px; margin: 12px 0; }
 .format-help form { display: flex; justify-content: flex-end; }
+
+/* Arrivals and departures in groups (MessageItem MembersLine): a discreet line, unfolding into one per event. */
+.members-line { margin: 4px 24px; }
+.members-toggle { border: 0; background: none; color: inherit; font: inherit; padding: 2px 6px; border-radius: 8px; cursor: pointer; }
+@media (hover: hover) { .members-toggle:hover { background: var(--hover); } }
+.members-list { list-style: none; margin: 4px 0 0; padding: 0; }
+.members-list li { padding: 1px 0; }
+.members-list time { opacity: 0.75; margin-right: 4px; }
+.members-setting .reading-seg { margin-top: 8px; }

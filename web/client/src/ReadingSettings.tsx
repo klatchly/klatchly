@@ -13,6 +13,8 @@ import { Note } from './Settings';
 import { useSheetDrag } from './sheet';
 import type { Chat } from './types';
 import './reading.css';
+import { setMembershipMode, useChatEvents } from './chatevents';
+import { DEFAULT_MEMBERSHIP_MODE, MEMBERSHIP_MODES } from '../../server/membership';
 
 // Settings → Lecture discrète (server/reading.ts), a page of its own (0.18.4) and its own chunk (strings, styles):
 // a short lead (what it does, the two levels); "Per account", one card per source (Beeper, another chat connector…) with a row per
@@ -263,6 +265,47 @@ function ChatChoices({ reading, busy, change, m }: { reading: ReadingReply | und
           }}
         />
       )}
+      <MembersSetting />
+    </>
+  );
+}
+
+/** Arrivals and departures in groups (server/chatevents.ts): grouped, one by one or hidden, for all chats. */
+function MembersSetting() {
+  const t = useT();
+  const qc = useQueryClient();
+  const q = useChatEvents();
+  const [busy, setBusy] = useState(false);
+  const value = q.data?.membership ?? DEFAULT_MEMBERSHIP_MODE;
+  return (
+    <>
+      <h2 className="set-group-title" id="members-mode-title">
+        {t.members.setting}
+      </h2>
+      <div className="set-group members-setting" data-testid="members-setting">
+        <p className="settings-hint">{t.members.settingHint}</p>
+        <span className="reading-seg" role="radiogroup" aria-labelledby="members-mode-title" data-testid="members-mode" data-value={value}>
+          {MEMBERSHIP_MODES.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              role="radio"
+              aria-checked={value === mode}
+              data-testid={`members-mode-${mode}`}
+              disabled={busy || !q.data}
+              onClick={() => {
+                if (value === mode) return;
+                setBusy(true);
+                void setMembershipMode(qc, mode)
+                  .catch(() => {})
+                  .finally(() => setBusy(false));
+              }}
+            >
+              {t.members.modes[mode]}
+            </button>
+          ))}
+        </span>
+      </div>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { log } from './log.js';
+import { membershipOf } from './membership.js';
 import { owner, project, sourceRecent, type ReadMessage } from './chatread.js';
 import { connectorFor, from } from './sources.js';
 
@@ -79,7 +80,8 @@ export function onChatEvent(l: (ev: ChatEvent) => void): () => void {
 /** A connector's event: message upserts go to the subscribed modules, projected. */
 export function emitChatEvent(ev: { type?: unknown; entries?: unknown }, source: string): void {
   if (ev.type !== 'message.upserted' || !Array.isArray(ev.entries) || !listeners.size) return;
-  const entries = ev.entries.flatMap((m) => projectEvent(m) ?? []);
+  // Arrivals and departures (membership.ts) are no message for the packages (a chat agent would greet them).
+  const entries = ev.entries.flatMap((m) => (m && typeof m === 'object' && membershipOf(m as Record<string, unknown>) ? [] : (projectEvent(m) ?? [])));
   if (!entries.length) return;
   const out: ChatEvent = { type: 'message.upserted', entries, source };
   for (const l of listeners) l(out);

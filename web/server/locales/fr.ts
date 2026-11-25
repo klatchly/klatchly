@@ -98,6 +98,18 @@ export default {
       toInbox: 'Remettre dans la boîte de réception',
       failed: 'Action impossible',
     },
+    members: {
+      joined: (names: string, n: number) => (n > 1 ? `Arrivées : ${names}` : `${names} a rejoint`),
+      left: (names: string, n: number) => (n > 1 ? `Départs : ${names}` : `${names} a quitté le groupe`),
+      invited: (names: string, n: number) => (n > 1 ? `Invitations : ${names}` : `Invitation : ${names}`),
+      removed: (names: string, n: number) => (n > 1 ? `Retirés du groupe : ${names}` : `Retrait du groupe : ${names}`),
+      others: (n: number) => `${n} autres`,
+      setting: 'Arrivées et départs dans les groupes',
+      settingHint: 'Quand quelqu’un rejoint ou quitte un groupe : une ligne discrète, jamais de notification.',
+      modes: { group: 'Regroupés', each: 'Un par un', hide: 'Masqués' },
+      hide: 'Masquer les arrivées et départs',
+      show: 'Afficher les arrivées et départs',
+    },
     reading: {
       title: 'Lecture discrète',
       markRead: 'Marquer comme lu',

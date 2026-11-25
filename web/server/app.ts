@@ -27,6 +27,7 @@ import { forwardRoutes } from './forward.js';
 import { readAllRoutes } from './readall.js';
 import { quietRoutes } from './quiet.js';
 import { readingRoutes } from './reading.js';
+import { chatEventsRoutes } from './chatevents.js';
 import { HTML_VIEW_PATH, htmlViewRoutes } from './htmlview.js';
 import { log } from './log.js';
 import { inlineStyleHashes, staticCache } from './shell.js';
@@ -272,6 +273,7 @@ export function createApp(registry = new Registry([])) {
   app.route('/api', readAllRoutes);
   // Discreet reading (Settings → Discreet reading): per account, server-wide.
   app.route('/api', readingRoutes);
+  app.route('/api', chatEventsRoutes);
   app.route('/api', quietRoutes);
   app.route('/api', newChatRoutes);
   app.route('/api', relay);

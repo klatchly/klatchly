@@ -153,6 +153,12 @@ test('notifiable messages', () => {
   assert.ok(!isNotifiable({ ...m, editedTimestamp: '2026-10-28T09:59:30Z' }, now));
   assert.ok(!isNotifiable({ ...m, type: 'REACTION' }, now));
   assert.ok(!isNotifiable({ ...m, timestamp: '2026-10-28T09:00:00Z' }, now));
+  // Arrivals and departures in groups (membership.ts), as beeper-server sends them: no type.
+  const { type: _type, ...untyped } = m;
+  assert.ok(!isNotifiable({ ...untyped, text: 'Yuichiro joined the chat' }, now));
+  assert.ok(!isNotifiable({ ...untyped, text: 'Yuichiro was invited to the chat' }, now));
+  assert.ok(isNotifiable({ ...m, text: 'I joined the chat late, sorry' }, now));
+  assert.ok(isNotifiable({ ...m, text: 'Dad left the group.' }, now), 'typed by someone: a message');
 });
 
 test('payload text', () => {

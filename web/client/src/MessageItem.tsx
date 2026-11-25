@@ -10,7 +10,8 @@ import { dayKey, dayLabel, displaySender, fileSize, senderHue, snippet, timeOf }
 import { knownName } from './names';
 import type { Outgoing } from './pending';
 import type { Attachment, Message } from './types';
-import { t, useT } from './i18n';
+import { t, useLang, useT } from './i18n';
+import { membershipOf, summarize } from '../../server/membership';
 import { linkify, RichText } from './richtext';
 import { LinkPreviews } from './LinkPreview';
 import { VoicePlayer } from './VoicePlayer';
@@ -46,11 +47,14 @@ function mentionNames(conv: Conv, m: Message): string[] | undefined {
   return out.length ? out : undefined;
 }
 
-/** A list row: one message, a photo album (several messages drawn as one bubble, albums.ts), or one being sent. */
-export type Row = { kind: 'msg'; m: Message } | { kind: 'album'; ms: Message[] } | { kind: 'out'; o: Outgoing };
+/**
+ * A list row: one message, a photo album (several messages drawn as one bubble, albums.ts), arrivals and departures
+ * in a group (one discreet line, server/membership.ts), or one being sent.
+ */
+export type Row = { kind: 'msg'; m: Message } | { kind: 'album'; ms: Message[] } | { kind: 'members'; ms: Message[] } | { kind: 'out'; o: Outgoing };
 /** Virtuoso key: an album keeps its first message's (the bubble it grew from). */
-export const rowKey = (r: Row) => (r.kind === 'msg' ? r.m.id : r.kind === 'album' ? r.ms[0]!.id : r.o.localId);
-export const rowMsgs = (r: Row): Message[] => (r.kind === 'msg' ? [r.m] : r.kind === 'album' ? r.ms : []);
+export const rowKey = (r: Row) => (r.kind === 'msg' ? r.m.id : r.kind === 'out' ? r.o.localId : r.ms[0]!.id);
+export const rowMsgs = (r: Row): Message[] => (r.kind === 'msg' ? [r.m] : r.kind === 'out' ? [] : r.ms);
 
 
 function fit(a: Attachment, maxW = 280, maxH = 320): { width?: number; height?: number } {
@@ -945,10 +949,58 @@ function Ticks({ readBy, deliveredTo, isGroup }: { readBy: string; deliveredTo?:
   );
 }
 
+/**
+ * Arrivals and departures as one discreet line ("Joined: Ana, Bao · Left: Kai"), each person once with their last
+ * event; several events unfold into one line each, with their time.
+ */
+function MembersLine({ ms }: { ms: Message[] }) {
+  const t = useT();
+  const lang = useLang();
+  const [open, setOpen] = useState(false);
+  const events = ms.flatMap((m) => {
+    const e = membershipOf(m);
+    return e ? [{ ...e, m }] : [];
+  });
+  const sum = summarize(events);
+  const list = (names: string[]) => {
+    const shown = names.length > 4 ? [...names.slice(0, 3), t.members.others(names.length - 3)] : names;
+    try {
+      return new Intl.ListFormat(lang, { type: 'conjunction' }).format(shown);
+    } catch {
+      return shown.join(', ');
+    }
+  };
+  const kinds = (['joined', 'left', 'invited', 'removed'] as const).filter((k) => sum.some((e) => e.kind === k));
+  const text = kinds.map((k) => t.members[k](list(sum.filter((e) => e.kind === k).map((e) => e.who)), sum.filter((e) => e.kind === k).length)).join(' · ');
+  const many = events.length > 1;
+  return (
+    <div className="notice members-line" data-testid="members-line" data-count={events.length}>
+      {many ? (
+        <button type="button" className="members-toggle" aria-expanded={open} data-testid="members-toggle" onClick={() => setOpen((v) => !v)}>
+          {text} <span aria-hidden="true">{open ? '▴' : '▾'}</span>
+        </button>
+      ) : (
+        text
+      )}
+      {open && (
+        <ul className="members-list" data-testid="members-list">
+          {events.map((e) => (
+            <li key={e.m.id}>
+              <time>{timeOf(e.m.timestamp)}</time> {t.members[e.kind](e.who, 1)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function rowTime(r: Row): string {
-  return r.kind === 'msg' ? r.m.timestamp : r.kind === 'album' ? r.ms[r.ms.length - 1]!.timestamp : r.o.createdAt;
+  return r.kind === 'msg' ? r.m.timestamp : r.kind === 'out' ? r.o.createdAt : r.ms[r.ms.length - 1]!.timestamp;
 }
 function rowSender(r: Row): string {
+  // After an arrival line, the next bubble shows its sender again.
+  if (r.kind === 'members') return '\0members';
   const m = r.kind === 'msg' ? r.m : r.kind === 'album' ? r.ms[0]! : undefined;
   return m ? (m.isSender ? '\0self' : m.senderID) : '\0self';
 }
@@ -1146,6 +1198,15 @@ export const MessageItem = memo(function MessageItem({
       <span>{t.conv.unread(unread)}</span>
     </div>
   ) : null;
+  if (row.kind === 'members') {
+    return (
+      <div className="msg-wrap">
+        {separator}
+        {unreadSep}
+        <MembersLine ms={row.ms} />
+      </div>
+    );
+  }
   if (row.kind === 'album') {
     return <AlbumItem ms={row.ms} isGroup={isGroup} sameSender={!!sameSender} separator={separator} unreadSep={unreadSep} readBy={readBy} deliveredTo={deliveredTo} />;
   }

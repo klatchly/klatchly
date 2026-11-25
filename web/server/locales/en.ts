@@ -96,6 +96,19 @@ const messages = {
     failed: 'Action failed',
   },
   /** Discreet reading (Settings → Discreet reading) and the explicit "Mark as read" (chat menu, conversation header). */
+  // Arrivals and departures in groups (server/membership.ts): the discreet line, the setting, the chat menu.
+  members: {
+    joined: (names: string, n: number) => (n > 1 ? `Joined: ${names}` : `${names} joined`),
+    left: (names: string, n: number) => (n > 1 ? `Left: ${names}` : `${names} left`),
+    invited: (names: string, n: number) => (n > 1 ? `Invited: ${names}` : `${names} was invited`),
+    removed: (names: string, n: number) => (n > 1 ? `Removed: ${names}` : `${names} was removed`),
+    others: (n: number) => `${n} others`,
+    setting: 'Arrivals and departures in groups',
+    settingHint: 'People joining or leaving a group chat: one discreet line, never a notification.',
+    modes: { group: 'Grouped', each: 'One by one', hide: 'Hidden' },
+    hide: 'Hide arrivals and departures',
+    show: 'Show arrivals and departures',
+  },
   reading: {
     title: 'Discreet reading',
     markRead: 'Mark as read',

@@ -57,7 +57,7 @@ services:
         KLATCHLY_PACKAGES: ${KLATCHLY_PACKAGES:-}
       # Packages from another folder (<id>/ folders, and an optional packages.json), in compose.override.yml:
       #   services: {klatchly: {build: {additional_contexts: {extra: ../my-packages}}}}
-    image: klatchly:0.27.0
+    image: klatchly:0.28.0
     pull_policy: never
     restart: unless-stopped
     user: "${KLATCHLY_UID:-10001}:${KLATCHLY_GID:-10001}"

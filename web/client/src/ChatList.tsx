@@ -24,6 +24,7 @@ import { refreshBadge, unreadChats, unreadTotal } from './badge';
 import { useDrafts } from './drafts';
 import { reactionView } from './reactions';
 import { canSendReceipt, chatReading, sendReceipt, setChatDiscreet, useReading } from './reading';
+import { membershipMode, setMembershipMode, useChatEvents } from './chatevents';
 import { MoonIcon, QuietChatDialog, releaseQuiet, useHeld, useQuietOn, useQuietReturn } from './quiet';
 import type { Chat, Message } from './types';
 import { LOOKUP_STALE_MS } from './persistcut';
@@ -700,6 +701,7 @@ function ChatMenu({ at, onClose, onError, onQuiet, onAction }: { at: MenuAt; onC
   const connectorUIs = useConnectorUIs();
   const { chat } = at;
   const reading = useReading().data;
+  const chatEvents = useChatEvents().data;
   const sheet = 'sheet' in at;
   const ref = useSheetDrag(sheet, onClose);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -740,6 +742,15 @@ function ChatMenu({ at, onClose, onError, onQuiet, onAction }: { at: MenuAt; onC
   if (r.choosable) {
     items.push({ id: 'discreet', label: t.reading.title, checked: r.discreet, run: () => setChatDiscreet(qc, chat.id, !r.discreet) });
     if (r.own !== undefined) items.push({ id: 'discreet-reset', label: t.reading.useAccount, run: () => setChatDiscreet(qc, chat.id, null) });
+  }
+  // Arrivals and departures in a group: hidden here, or shown again (as for all chats, else grouped).
+  if (chat.type === 'group' && chatEvents) {
+    const mode = membershipMode(chatEvents, chat.id);
+    items.push(
+      mode === 'hide'
+        ? { id: 'members-show', label: t.members.show, run: () => setMembershipMode(qc, chatEvents.membership === 'hide' ? 'group' : null, chat.id) }
+        : { id: 'members-hide', label: t.members.hide, run: () => setMembershipMode(qc, chatEvents.membership === 'hide' ? null : 'hide', chat.id) },
+    );
   }
   // Quiet hours: its own, its network's, or never (a dialog).
   items.push({ id: 'quiet', label: t.quiet.menu, run: async () => onQuiet(chat) });
