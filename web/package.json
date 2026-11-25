@@ -33,7 +33,7 @@
     "@beeper/desktop-api": "^6.0.0",
     "@hono/node-server": "^2.1.11",
     "@simplewebauthn/server": "^14.1.0",
-    "hono": "^4.13.19",
+    "hono": "^4.13.20",
     "openid-client": "^6.9.1",
     "sharp": "^0.35.5",
     "web-push": "^4.0.0",
